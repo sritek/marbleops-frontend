@@ -1,0 +1,186 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "retry": "पुनः प्रयास करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "view": "देखें",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "all": "सभी",
+    "yes": "हां",
+    "no": "नहीं",
+    "confirm": "पुष्टि करें",
+    "close": "बंद करें",
+    "add": "जोड़ें",
+    "create": "बनाएं",
+    "update": "अपडेट करें",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "export": "निर्यात",
+    "print": "प्रिंट",
+    "download": "डाउनलोड"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "inventory": "इन्वेंटरी",
+    "orders": "ऑर्डर",
+    "invoices": "इनवॉइस",
+    "payments": "भुगतान",
+    "parties": "पार्टी",
+    "reports": "रिपोर्ट",
+    "users": "उपयोगकर्ता",
+    "stores": "स्टोर",
+    "settings": "सेटिंग्स"
+  },
+  "auth": {
+    "login": "साइन इन करें",
+    "logout": "साइन आउट",
+    "phone": "फोन नंबर",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "welcomeBack": "वापसी पर स्वागत है",
+    "contactAdmin": "यदि आपको एक्सेस चाहिए या पासवर्ड भूल गए हैं तो अपने एडमिन से संपर्क करें।"
+  },
+  "dashboard": {
+    "welcome": "स्वागत है, {name}",
+    "todaysSales": "आज की बिक्री",
+    "pendingPayments": "बकाया भुगतान",
+    "lowStockAlerts": "कम स्टॉक अलर्ट",
+    "activeOrders": "सक्रिय ऑर्डर",
+    "actionItems": "कार्य सूची",
+    "recentActivity": "हाल की गतिविधि",
+    "quickLinks": "त्वरित लिंक",
+    "overdueInvoices": "{count} इनवॉइस में फॉलो-अप की जरूरत है",
+    "lowStockItems": "{count} आइटम थ्रेशोल्ड से नीचे",
+    "draftOrders": "{count} ऑर्डर पुष्टि की प्रतीक्षा में"
+  },
+  "inventory": {
+    "title": "इन्वेंटरी",
+    "subtitle": "अपने स्टोन इन्वेंटरी और स्टॉक स्तर प्रबंधित करें",
+    "addItem": "आइटम जोड़ें",
+    "noItems": "कोई इन्वेंटरी आइटम नहीं",
+    "noItemsDesc": "अपना पहला आइटम जोड़कर शुरू करें",
+    "materialType": "मटेरियल प्रकार",
+    "form": "फॉर्म",
+    "finish": "फिनिश",
+    "quality": "गुणवत्ता",
+    "dimensions": "आयाम",
+    "sqft": "वर्ग फुट",
+    "buyPrice": "खरीद मूल्य",
+    "sellPrice": "बिक्री मूल्य",
+    "supplier": "सप्लायर",
+    "lotNumber": "लॉट नंबर",
+    "status": {
+      "available": "उपलब्ध",
+      "reserved": "आरक्षित",
+      "sold": "बिक गया"
+    },
+    "material": {
+      "marble": "मार्बल",
+      "granite": "ग्रेनाइट",
+      "tile": "टाइल"
+    }
+  },
+  "orders": {
+    "title": "ऑर्डर",
+    "subtitle": "ग्राहक ऑर्डर और डिलीवरी प्रबंधित करें",
+    "newOrder": "नया ऑर्डर",
+    "orderNumber": "ऑर्डर नंबर",
+    "customer": "ग्राहक",
+    "items": "आइटम",
+    "total": "कुल",
+    "notes": "नोट्स",
+    "createInvoice": "इनवॉइस बनाएं",
+    "markDelivered": "डिलीवर के रूप में चिह्नित करें",
+    "status": {
+      "draft": "ड्राफ्ट",
+      "confirmed": "पुष्टि",
+      "delivered": "डिलीवर",
+      "cancelled": "रद्द"
+    }
+  },
+  "invoices": {
+    "title": "इनवॉइस",
+    "subtitle": "बिलिंग और इनवॉइस प्रबंधित करें",
+    "newInvoice": "नया इनवॉइस",
+    "invoiceNumber": "इनवॉइस नंबर",
+    "subtotal": "उप-योग",
+    "discount": "छूट",
+    "total": "कुल",
+    "paid": "भुगतान",
+    "due": "बकाया राशि",
+    "recordPayment": "भुगतान दर्ज करें",
+    "status": {
+      "draft": "ड्राफ्ट",
+      "issued": "जारी",
+      "paid": "भुगतान हो गया",
+      "cancelled": "रद्द"
+    }
+  },
+  "payments": {
+    "title": "भुगतान",
+    "subtitle": "भुगतान और लेनदेन ट्रैक करें",
+    "recordPayment": "भुगतान दर्ज करें",
+    "received": "प्राप्त",
+    "paid": "भुगतान किया",
+    "amount": "राशि",
+    "method": "तरीका",
+    "reference": "संदर्भ",
+    "type": {
+      "in": "पैसा आया",
+      "out": "पैसा गया"
+    },
+    "methods": {
+      "cash": "नकद",
+      "bank": "बैंक ट्रांसफर",
+      "upi": "UPI",
+      "cheque": "चेक",
+      "other": "अन्य"
+    }
+  },
+  "parties": {
+    "title": "पार्टी",
+    "subtitle": "ग्राहक और सप्लायर प्रबंधित करें",
+    "addParty": "पार्टी जोड़ें",
+    "name": "नाम",
+    "phone": "फोन",
+    "email": "ईमेल",
+    "address": "पता",
+    "gstNumber": "GST नंबर",
+    "balance": "बैलेंस",
+    "type": {
+      "customer": "ग्राहक",
+      "supplier": "सप्लायर",
+      "both": "दोनों"
+    }
+  },
+  "reports": {
+    "title": "रिपोर्ट",
+    "subtitle": "व्यापार रिपोर्ट देखें और निर्यात करें",
+    "salesReport": "बिक्री रिपोर्ट",
+    "stockReport": "स्टॉक रिपोर्ट",
+    "partyLedger": "पार्टी खाता",
+    "invoiceReport": "इनवॉइस रिपोर्ट",
+    "paymentReport": "भुगतान रिपोर्ट"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "profile": "प्रोफ़ाइल",
+    "preferences": "प्राथमिकताएं",
+    "theme": "थीम",
+    "language": "भाषा",
+    "notifications": "सूचनाएं"
+  },
+  "errors": {
+    "notFound": "नहीं मिला",
+    "unauthorized": "आप इस पेज को देखने के लिए अधिकृत नहीं हैं",
+    "serverError": "कुछ गलत हो गया",
+    "networkError": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "validationError": "कृपया फॉर्म में त्रुटियां जांचें"
+  }
+}

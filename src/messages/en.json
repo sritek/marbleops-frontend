@@ -1,0 +1,186 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "close": "Close",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "export": "Export",
+    "print": "Print",
+    "download": "Download"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "orders": "Orders",
+    "invoices": "Invoices",
+    "payments": "Payments",
+    "parties": "Parties",
+    "reports": "Reports",
+    "users": "Users",
+    "stores": "Stores",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "phone": "Phone Number",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "welcomeBack": "Welcome back",
+    "contactAdmin": "Contact your administrator if you need access or forgot your password."
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {name}",
+    "todaysSales": "Today's Sales",
+    "pendingPayments": "Pending Payments",
+    "lowStockAlerts": "Low Stock Alerts",
+    "activeOrders": "Active Orders",
+    "actionItems": "Action Items",
+    "recentActivity": "Recent Activity",
+    "quickLinks": "Quick Links",
+    "overdueInvoices": "{count} invoices need follow-up",
+    "lowStockItems": "{count} items below threshold",
+    "draftOrders": "{count} orders pending confirmation"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Manage your stone inventory and stock levels",
+    "addItem": "Add Item",
+    "noItems": "No inventory items",
+    "noItemsDesc": "Get started by adding your first item",
+    "materialType": "Material Type",
+    "form": "Form",
+    "finish": "Finish",
+    "quality": "Quality",
+    "dimensions": "Dimensions",
+    "sqft": "Square Feet",
+    "buyPrice": "Buy Price",
+    "sellPrice": "Sell Price",
+    "supplier": "Supplier",
+    "lotNumber": "Lot Number",
+    "status": {
+      "available": "Available",
+      "reserved": "Reserved",
+      "sold": "Sold"
+    },
+    "material": {
+      "marble": "Marble",
+      "granite": "Granite",
+      "tile": "Tile"
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Manage customer orders and deliveries",
+    "newOrder": "New Order",
+    "orderNumber": "Order Number",
+    "customer": "Customer",
+    "items": "Items",
+    "total": "Total",
+    "notes": "Notes",
+    "createInvoice": "Create Invoice",
+    "markDelivered": "Mark Delivered",
+    "status": {
+      "draft": "Draft",
+      "confirmed": "Confirmed",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    }
+  },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Manage billing and invoices",
+    "newInvoice": "New Invoice",
+    "invoiceNumber": "Invoice Number",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total",
+    "paid": "Paid",
+    "due": "Balance Due",
+    "recordPayment": "Record Payment",
+    "status": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    }
+  },
+  "payments": {
+    "title": "Payments",
+    "subtitle": "Track payments and transactions",
+    "recordPayment": "Record Payment",
+    "received": "Received",
+    "paid": "Paid",
+    "amount": "Amount",
+    "method": "Method",
+    "reference": "Reference",
+    "type": {
+      "in": "Money In",
+      "out": "Money Out"
+    },
+    "methods": {
+      "cash": "Cash",
+      "bank": "Bank Transfer",
+      "upi": "UPI",
+      "cheque": "Cheque",
+      "other": "Other"
+    }
+  },
+  "parties": {
+    "title": "Parties",
+    "subtitle": "Manage customers and suppliers",
+    "addParty": "Add Party",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "gstNumber": "GST Number",
+    "balance": "Balance",
+    "type": {
+      "customer": "Customer",
+      "supplier": "Supplier",
+      "both": "Both"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "View and export business reports",
+    "salesReport": "Sales Report",
+    "stockReport": "Stock Report",
+    "partyLedger": "Party Ledger",
+    "invoiceReport": "Invoice Report",
+    "paymentReport": "Payment Report"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "language": "Language",
+    "notifications": "Notifications"
+  },
+  "errors": {
+    "notFound": "Not found",
+    "unauthorized": "You are not authorized to view this page",
+    "serverError": "Something went wrong",
+    "networkError": "Network error. Please check your connection.",
+    "validationError": "Please check the form for errors"
+  }
+}
