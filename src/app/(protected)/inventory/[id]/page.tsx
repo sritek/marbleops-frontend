@@ -111,7 +111,7 @@ export default function InventoryDetailPage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-48 bg-bg-muted rounded-lg">
+                <div className="flex items-center justify-center h-48 bg-bg-app rounded-lg">
                   <Package className="h-12 w-12 text-text-muted" />
                 </div>
               )}
@@ -244,7 +244,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-muted shrink-0">
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-app shrink-0">
         <Icon className="h-4 w-4 text-text-muted" />
       </div>
       <div>

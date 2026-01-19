@@ -156,7 +156,7 @@ export default function OrderDetailPage() {
                       >
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-muted">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-app">
                               <Package className="h-4 w-4 text-text-muted" />
                             </div>
                             <span className="font-medium">{item.name}</span>
@@ -179,7 +179,7 @@ export default function OrderDetailPage() {
                     )}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-bg-muted">
+                    <tr className="bg-bg-app">
                       <td
                         colSpan={3}
                         className="py-3 px-4 text-right font-medium"
@@ -220,7 +220,7 @@ export default function OrderDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-muted">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-app">
                   <User className="h-5 w-5 text-text-muted" />
                 </div>
                 <div>

@@ -1,25 +1,26 @@
 import type { Config } from "tailwindcss";
 
 /**
- * MarbleOps Design System - Tailwind Configuration
- *
+ * Sritek Design System v1.0 - Tailwind Configuration
+ * 
  * This is a minimal config file for Tailwind v4.
  * Most theming is done via CSS variables in globals.css using @theme blocks.
+ * This file primarily defines content paths and any JS-based extensions.
  */
 const config: Config = {
   // ---------------------------------------------------------------------------
   // Content Paths
   // ---------------------------------------------------------------------------
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
-
-  // ---------------------------------------------------------------------------
-  // Dark Mode
-  // ---------------------------------------------------------------------------
-  darkMode: "class",
+  // Tailwind scans these paths to generate utility classes
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
 
   // ---------------------------------------------------------------------------
   // Theme Extension
   // ---------------------------------------------------------------------------
+  // Extended via CSS variables in globals.css for Tailwind v4
+  // This section is for any programmatic theme extensions if needed
   theme: {
     extend: {
       // Font family - Inter as primary
@@ -37,12 +38,7 @@ const config: Config = {
 
       // Max width for content containers
       maxWidth: {
-        content: "1400px",
-      },
-
-      // Sidebar width
-      width: {
-        sidebar: "240px",
+        content: "1200px",
       },
 
       // Minimum touch target size (WCAG compliance)
@@ -51,20 +47,6 @@ const config: Config = {
       },
       minWidth: {
         touch: "44px",
-      },
-
-      // Animation for loading states
-      animation: {
-        shimmer: "shimmer 1.5s infinite",
-        "spin-slow": "spin 2s linear infinite",
-      },
-
-      // Custom keyframes
-      keyframes: {
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
       },
     },
   },

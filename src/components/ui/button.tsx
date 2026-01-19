@@ -3,24 +3,21 @@ import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
 /**
- * Button variants following MarbleOps Design System
- * - Primary: Main action (ONE per screen) - slate gray
+ * Button variants following Sritek Design System v1.0
+ * - Primary: Main action (ONE per screen)
  * - Secondary: Safe/neutral actions
  * - Ghost: Low-priority actions
  * - Destructive: Delete/deactivate actions
- * - Accent: High-visibility CTAs - amber
  */
 const buttonVariants = {
   primary:
-    "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800",
+    "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-700",
   secondary:
-    "bg-bg-surface text-text-primary border border-border-subtle hover:bg-bg-muted active:bg-bg-muted",
+    "bg-bg-surface text-text-primary border border-border-subtle hover:bg-bg-app active:bg-bg-app",
   ghost:
-    "bg-transparent text-text-primary hover:bg-bg-muted active:bg-bg-muted",
+    "bg-transparent text-text-primary hover:bg-bg-app active:bg-bg-app",
   destructive:
     "bg-error text-white hover:bg-red-700 active:bg-red-800",
-  accent:
-    "bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700",
   link: "bg-transparent text-primary-600 hover:text-primary-700 hover:underline p-0 h-auto",
 };
 
@@ -39,17 +36,22 @@ export interface ButtonProps
   size?: keyof typeof buttonSizes;
   /** Render as child component (for links styled as buttons) */
   asChild?: boolean;
-  /** Loading state - disables button and shows spinner */
+  /** Loading state - disables button and shows loading indicator */
   isLoading?: boolean;
 }
 
 /**
  * Button component
  *
+ * Accessibility:
+ * - Minimum 44px touch target (size="md" default)
+ * - Visible focus ring
+ * - Disabled state clearly indicated
+ * - Uses verb-based labels ("Save attendance", not "Submit")
+ *
  * @example
  * <Button>Add Item</Button>
  * <Button variant="destructive">Delete</Button>
- * <Button variant="accent">Create Invoice</Button>
  * <Button variant="secondary" size="sm">Cancel</Button>
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -29,7 +29,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           error &&
             "border-error focus-visible:border-error focus-visible:outline-error",
           // Disabled state
-          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-muted",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-app",
           // File input
           "file:border-0 file:bg-transparent file:text-sm file:font-medium",
           className

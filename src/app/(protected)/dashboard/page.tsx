@@ -315,7 +315,7 @@ function ActionItemsList({ stats }: { stats: DashboardStats | undefined }) {
         <Link
           key={idx}
           href={item.href}
-          className="flex items-center justify-between py-2 px-3 rounded-lg border border-border-subtle hover:bg-bg-muted transition-colors"
+          className="flex items-center justify-between py-2 px-3 rounded-lg border border-border-subtle hover:bg-bg-app transition-colors"
         >
           <div className="flex items-center gap-3">
             <div
@@ -360,7 +360,7 @@ function EmptyActionState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-bg-muted mb-3">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-bg-app mb-3">
         <Icon className="h-5 w-5 text-text-muted" />
       </div>
       <p className="text-sm text-text-muted">{message}</p>
@@ -382,7 +382,7 @@ function QuickLinkCard({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border-subtle hover:bg-bg-muted hover:border-border-strong transition-colors text-center"
+      className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border-subtle hover:bg-bg-app hover:border-border-strong transition-colors text-center"
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100">
         <Icon className="h-5 w-5 text-primary-600" />
@@ -408,10 +408,10 @@ function ActivityItem({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-muted shrink-0 mt-0.5">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-app shrink-0 mt-0.5">
         {type === "payment" && <Wallet className="h-4 w-4 text-success" />}
         {type === "invoice" && <FileText className="h-4 w-4 text-info" />}
-        {type === "order" && <ShoppingCart className="h-4 w-4 text-accent-500" />}
+        {type === "order" && <ShoppingCart className="h-4 w-4 text-primary-600" />}
         {type === "inventory" && <Package className="h-4 w-4 text-primary-600" />}
       </div>
       <div className="flex-1 min-w-0">

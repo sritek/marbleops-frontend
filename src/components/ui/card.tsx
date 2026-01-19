@@ -4,6 +4,14 @@ import { cn } from "@/lib/utils";
 /**
  * Card component
  */
+/**
+ * Card component
+ *
+ * Design System Rules:
+ * - Rounded: 12px (--radius-md)
+ * - Subtle border OR shadow, not both
+ * - Clear title + content separation
+ */
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -13,7 +21,6 @@ const Card = React.forwardRef<
     className={cn(
       "rounded-xl border border-border-subtle",
       "bg-bg-surface text-text-primary",
-      "shadow-sm",
       className
     )}
     {...props}

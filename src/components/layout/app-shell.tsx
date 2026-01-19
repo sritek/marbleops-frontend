@@ -28,7 +28,7 @@ export function AppShell({ children }: AppShellProps) {
       />
 
       {/* Main content area */}
-      <div className="lg:pl-sidebar">
+      <div className="lg:pl-56">
         {/* Header */}
         <Header onMenuClick={() => setMobileNavOpen(true)} />
 

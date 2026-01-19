@@ -170,7 +170,7 @@ export default function NewOrderPage() {
                     {inventory.slice(0, 10).map((inv) => (
                       <button
                         key={inv.id}
-                        className="w-full text-left px-4 py-2 hover:bg-bg-muted flex items-center justify-between"
+                        className="w-full text-left px-4 py-2 hover:bg-bg-app flex items-center justify-between"
                         onClick={() => handleAddItem(inv)}
                       >
                         <div>
@@ -196,7 +196,7 @@ export default function NewOrderPage() {
                   {items.map((item, index) => (
                     <div
                       key={item.inventoryId}
-                      className="flex items-center gap-4 p-3 bg-bg-muted rounded-lg"
+                      className="flex items-center gap-4 p-3 bg-bg-app rounded-lg"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{item.name}</p>

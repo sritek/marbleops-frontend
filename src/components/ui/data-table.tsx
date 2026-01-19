@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
       <div className="rounded-lg border border-border-subtle overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-bg-muted">
+            <thead className="bg-bg-app">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -156,7 +156,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   className={cn(
                     "border-b border-border-subtle last:border-b-0",
-                    "transition-colors hover:bg-bg-muted",
+                    "transition-colors hover:bg-bg-app",
                     row.getIsSelected() && "bg-primary-50",
                     onRowClick && "cursor-pointer"
                   )}
@@ -246,7 +246,7 @@ export function SortableHeader<TData>({
     <Button
       variant="ghost"
       size="sm"
-      className="-ml-3 h-8 data-[state=open]:bg-bg-muted"
+      className="-ml-3 h-8 data-[state=open]:bg-bg-app"
       onClick={handler}
     >
       {children}

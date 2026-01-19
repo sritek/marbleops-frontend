@@ -50,7 +50,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         )}
         {...props}
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-muted mb-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-app mb-4">
           <Icon className="h-8 w-8 text-text-muted" aria-hidden="true" />
         </div>
 

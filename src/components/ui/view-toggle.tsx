@@ -23,7 +23,7 @@ export function ViewToggle({ value, onChange, className }: ViewToggleProps) {
     <div
       className={cn(
         "inline-flex items-center gap-1 p-1",
-        "rounded-lg border border-border-subtle bg-bg-muted",
+        "rounded-lg border border-border-subtle bg-bg-app",
         className
       )}
       role="radiogroup"

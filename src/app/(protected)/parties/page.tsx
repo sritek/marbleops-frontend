@@ -60,7 +60,7 @@ export default function PartiesPage() {
       header: ({ column }) => <SortableHeader column={column}>Name</SortableHeader>,
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-muted">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-app">
             <User className="h-4 w-4 text-text-muted" />
           </div>
           <div>

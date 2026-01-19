@@ -103,7 +103,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                       "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
                       isActive
                         ? "bg-primary-100 text-primary-700"
-                        : "text-text-muted hover:bg-bg-muted hover:text-text-primary"
+                        : "text-text-muted hover:bg-bg-app hover:text-text-primary"
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -137,7 +137,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                           "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
                           isActive
                             ? "bg-primary-100 text-primary-700"
-                            : "text-text-muted hover:bg-bg-muted hover:text-text-primary"
+                            : "text-text-muted hover:bg-bg-app hover:text-text-primary"
                         )}
                       >
                         <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />

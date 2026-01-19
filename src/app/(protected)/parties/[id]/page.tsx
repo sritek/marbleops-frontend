@@ -96,7 +96,7 @@ export default function PartyDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-muted">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-app">
                   <User className="h-5 w-5 text-text-muted" />
                 </div>
                 <div>

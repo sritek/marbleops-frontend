@@ -28,7 +28,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           error &&
             "border-error focus-visible:border-error focus-visible:outline-error",
           // Disabled state
-          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-muted",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-app",
           className
         )}
         ref={ref}

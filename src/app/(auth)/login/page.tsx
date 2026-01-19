@@ -72,7 +72,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-bg-app p-4">
       {/* Background pattern */}
       <div
-        className="fixed inset-0 bg-gradient-to-br from-primary-100 via-bg-app to-accent-50 dark:from-primary-900 dark:via-bg-app dark:to-accent-900"
+        className="fixed inset-0 bg-gradient-to-br from-primary-100 via-bg-app to-blue-50 dark:from-slate-900 dark:via-bg-app dark:to-slate-800"
         aria-hidden="true"
       />
 

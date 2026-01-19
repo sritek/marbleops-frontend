@@ -90,7 +90,7 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           </div>
 
           {Icon && (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-muted">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-app">
               <Icon className="h-5 w-5 text-text-muted" />
             </div>
           )}

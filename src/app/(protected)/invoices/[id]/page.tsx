@@ -102,7 +102,7 @@ export default function InvoiceDetailPage() {
           </div>
 
           {/* Bill To */}
-          <div className="mb-8 p-4 bg-bg-muted rounded-lg">
+          <div className="mb-8 p-4 bg-bg-app rounded-lg">
             <p className="text-sm font-medium text-text-muted mb-1">Bill To:</p>
             <p className="font-semibold text-lg">{invoice.party?.name || "—"}</p>
             {invoice.party?.phone && (

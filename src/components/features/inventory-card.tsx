@@ -42,7 +42,7 @@ export function InventoryCard({ item, className }: InventoryCardProps) {
         )}
       >
         {/* Photo or placeholder */}
-        <div className="relative aspect-[4/3] bg-bg-muted">
+        <div className="relative aspect-[4/3] bg-bg-app">
           {hasPhoto ? (
             <img
               src={item.photos![0]}

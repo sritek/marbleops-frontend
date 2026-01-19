@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 /* =============================================================================
-   MARBLEOPS DESIGN SYSTEM v1.0
-   Ops-first · Professional · Accessible · Industry-appropriate
+   SRITEK DESIGN SYSTEM v1.0
+   Ops-first · Accessible · Calm · Reusable
    
    Design Philosophy:
    - Clarity over cleverness
-   - Professional stone-industry aesthetic
+   - Calm over excitement
    - Speed over decoration
    - Consistency over creativity
    
-   This is an operational cockpit for marble/granite businesses.
+   This is an operational cockpit, not a consumer app.
    ============================================================================= */
 
 /* =============================================================================
@@ -20,166 +20,126 @@
 :root {
   /* ---------------------------------------------------------------------------
      1.1 Background Colors
-     Stone-inspired neutrals for professional feel
+     Used for app background and surface elements (cards, panels)
      --------------------------------------------------------------------------- */
-  --bg-app: #f8fafc; /* Main app background - slate-50 */
+  --bg-app: #f9fafb; /* Main app background */
   --bg-surface: #ffffff; /* Cards, panels, modals */
-  --bg-muted: #f1f5f9; /* Muted backgrounds - slate-100 */
 
   /* ---------------------------------------------------------------------------
      1.2 Text Colors
      Primary for main content, muted for secondary/helper text
      Contrast ratio ≥ 4.5:1 for WCAG AA compliance
      --------------------------------------------------------------------------- */
-  --text-primary: #0f172a; /* Main text - slate-900 */
-  --text-muted: #64748b; /* Secondary text - slate-500 */
-  --text-inverse: #ffffff; /* Text on dark backgrounds */
+  --text-primary: #111827; /* Main text - high contrast */
+  --text-muted: #6b7280; /* Secondary text, labels, placeholders */
 
   /* ---------------------------------------------------------------------------
      1.3 Border Colors
      Subtle borders for dividers and outlines
+     Contrast ratio ≥ 3:1 for UI elements
      --------------------------------------------------------------------------- */
-  --border-subtle: #e2e8f0; /* Dividers, card borders - slate-200 */
-  --border-strong: #cbd5e1; /* Stronger borders - slate-300 */
+  --border-subtle: #e5e7eb; /* Dividers, card borders, input borders */
 
   /* ---------------------------------------------------------------------------
-     1.4 Primary Brand Color (Stone Gray)
-     Professional, industry-appropriate slate tones
+     1.4 Primary Brand Color (Trust)
+     Used for primary actions ONLY - one primary action per screen
+     Never use for decoration
      --------------------------------------------------------------------------- */
-  --primary-50: #f8fafc;
-  --primary-100: #f1f5f9;
-  --primary-200: #e2e8f0;
-  --primary-500: #64748b;
-  --primary-600: #475569; /* Primary buttons, links */
-  --primary-700: #334155; /* Hover state */
-  --primary-800: #1e293b;
-  --primary-900: #0f172a;
+  --primary-100: #dbeafe; /* Subtle background, selected states */
+  --primary-600: #2563eb; /* Primary buttons, links, active states */
+  --primary-700: #1d4ed8; /* Hover state for primary elements */
 
   /* ---------------------------------------------------------------------------
-     1.5 Accent Color (Warm Amber)
-     For CTAs and highlights - stands out against stone grays
-     --------------------------------------------------------------------------- */
-  --accent-50: #fffbeb;
-  --accent-100: #fef3c7;
-  --accent-400: #fbbf24;
-  --accent-500: #f59e0b; /* Accent buttons, highlights */
-  --accent-600: #d97706; /* Hover state */
-  --accent-700: #b45309;
-
-  /* ---------------------------------------------------------------------------
-     1.6 Status Colors (Semantic Only)
+     1.5 Status Colors (Semantic Only)
      ⚠️ Never rely on color alone - always add text or icon
      --------------------------------------------------------------------------- */
-  --success: #16a34a; /* Paid, Active, In Stock */
-  --success-bg: #f0fdf4;
-  --warning: #d97706; /* Pending, Due soon, Low stock */
-  --warning-bg: #fffbeb;
-  --error: #dc2626; /* Overdue, Failed, Out of stock */
-  --error-bg: #fef2f2;
-  --info: #0284c7; /* Neutral highlights */
-  --info-bg: #f0f9ff;
+  --success: #16a34a; /* Paid, Present, Completed, Active */
+  --warning: #d97706; /* Pending, Due soon, Attention needed */
+  --error: #dc2626; /* Failed, Absent, Overdue, Delete actions */
+  --info: #0284c7; /* System info, neutral highlights */
 
   /* ---------------------------------------------------------------------------
-     1.7 Focus Ring
-     Visible focus states for keyboard navigation
+     1.6 Focus Ring
+     Visible focus states for keyboard navigation (WCAG requirement)
      --------------------------------------------------------------------------- */
-  --ring: #475569; /* Focus ring - matches primary */
-  --ring-offset: 2px;
+  --ring: #2563eb; /* Focus ring color - matches primary */
+  --ring-offset: 2px; /* Offset from element */
 
   /* ---------------------------------------------------------------------------
-     1.8 Spacing Scale (8px system)
+     1.7 Spacing Scale (8px system)
+     ❌ No arbitrary spacing values - use scale only
      --------------------------------------------------------------------------- */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
+  --space-xs: 4px; /* 0.25rem - tight spacing */
+  --space-sm: 8px; /* 0.5rem  - default small gap */
+  --space-md: 16px; /* 1rem    - standard spacing */
+  --space-lg: 24px; /* 1.5rem  - section spacing */
+  --space-xl: 32px; /* 2rem    - large gaps */
 
   /* ---------------------------------------------------------------------------
-     1.9 Border Radius
+     1.8 Border Radius
+     Cards use 8-12px, inputs use 8px
      --------------------------------------------------------------------------- */
-  --radius-sm: 4px;
-  --radius: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --radius-sm: 4px; /* Small elements, tags */
+  --radius: 8px; /* Default - inputs, buttons */
+  --radius-md: 12px; /* Cards, panels */
+  --radius-lg: 16px; /* Large cards, modals */
+  --radius-full: 9999px; /* Pills, avatars */
 
   /* ---------------------------------------------------------------------------
-     1.10 Typography
-     Font: Inter as primary, system-ui fallback
+     1.9 Typography
+     Font: Inter (primary), system-ui fallback
      --------------------------------------------------------------------------- */
   --font-sans: var(--font-inter), Inter, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.6;
+  /* Line heights */
+  --leading-tight: 1.25; /* Headings */
+  --leading-normal: 1.5; /* Body text */
+  --leading-relaxed: 1.6; /* Long-form content */
 
   /* ---------------------------------------------------------------------------
-     1.11 Layout
+     1.10 Layout
      --------------------------------------------------------------------------- */
-  --max-content-width: 1400px;
-  --sidebar-width: 240px;
-  --header-height: 56px;
-  --min-touch-target: 44px;
-  --row-height: 48px;
-
-  /* ---------------------------------------------------------------------------
-     1.12 Shadows
-     --------------------------------------------------------------------------- */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --max-content-width: 1200px; /* Maximum content width */
+  --min-touch-target: 44px; /* Minimum touch target size (WCAG) */
+  --row-height: 48px; /* Minimum table row height */
 }
 
 /* =============================================================================
    2. TAILWIND v4 THEME CONFIGURATION
+   Maps CSS variables to Tailwind utility classes
    ============================================================================= */
 
 @theme inline {
+  /* ---------------------------------------------------------------------------
+     2.1 Color Utilities
+     Usage: bg-app, bg-surface, text-primary, text-muted, border-subtle
+     
+     NOTE: We ONLY define colors here. Spacing, width, and other utilities
+     use Tailwind's defaults to avoid breaking standard classes like max-w-sm.
+     --------------------------------------------------------------------------- */
+
   /* Backgrounds */
   --color-bg-app: var(--bg-app);
   --color-bg-surface: var(--bg-surface);
-  --color-bg-muted: var(--bg-muted);
 
   /* Text */
   --color-text-primary: var(--text-primary);
   --color-text-muted: var(--text-muted);
-  --color-text-inverse: var(--text-inverse);
 
   /* Borders */
   --color-border-subtle: var(--border-subtle);
-  --color-border-strong: var(--border-strong);
 
   /* Primary palette */
-  --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
-  --color-primary-200: var(--primary-200);
-  --color-primary-500: var(--primary-500);
   --color-primary-600: var(--primary-600);
   --color-primary-700: var(--primary-700);
-  --color-primary-800: var(--primary-800);
-  --color-primary-900: var(--primary-900);
-
-  /* Accent palette */
-  --color-accent-50: var(--accent-50);
-  --color-accent-100: var(--accent-100);
-  --color-accent-400: var(--accent-400);
-  --color-accent-500: var(--accent-500);
-  --color-accent-600: var(--accent-600);
-  --color-accent-700: var(--accent-700);
 
   /* Status colors */
   --color-success: var(--success);
-  --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
-  --color-warning-bg: var(--warning-bg);
   --color-error: var(--error);
-  --color-error-bg: var(--error-bg);
   --color-info: var(--info);
-  --color-info-bg: var(--info-bg);
 
   /* Focus ring */
   --color-ring: var(--ring);
@@ -187,24 +147,23 @@
 
 /* =============================================================================
    3. BASE STYLES
+   Applied to all elements
    ============================================================================= */
 
+/* Reset and base */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
+/* Body defaults */
 body {
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: var(--leading-normal);
+  font-size: 14px; /* text-base: 14px */
+  line-height: var(--leading-normal); /* 1.5 for body text */
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -212,19 +171,25 @@ body {
 
 /* =============================================================================
    4. FOCUS STATES (Accessibility)
+   Visible focus ring for keyboard navigation
+   Tab order must be logical, no keyboard traps
    ============================================================================= */
 
+/* Visible focus ring for keyboard users */
 *:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: var(--ring-offset);
 }
 
+/* Remove default focus for mouse users */
 *:focus:not(:focus-visible) {
   outline: none;
 }
 
 /* =============================================================================
    5. REDUCED MOTION (Accessibility)
+   Respect user preference for reduced motion
+   No information should be conveyed only via animation
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -240,8 +205,10 @@ body {
 
 /* =============================================================================
    6. TYPOGRAPHY UTILITIES
+   Custom text styles matching design system
    ============================================================================= */
 
+/* Page titles - text-xl: 20px, weight 600, leading 1.25 */
 .text-title {
   font-size: 20px;
   font-weight: 600;
@@ -249,6 +216,7 @@ body {
   color: var(--text-primary);
 }
 
+/* Section headers - text-lg: 18px, weight 500, leading 1.25 */
 .text-heading {
   font-size: 18px;
   font-weight: 500;
@@ -256,6 +224,7 @@ body {
   color: var(--text-primary);
 }
 
+/* Body text - text-base: 14px, weight 400, leading 1.5 */
 .text-body {
   font-size: 14px;
   font-weight: 400;
@@ -263,6 +232,7 @@ body {
   color: var(--text-primary);
 }
 
+/* Helper text - text-sm: 12px, weight 400, leading 1.5 */
 .text-helper {
   font-size: 12px;
   font-weight: 400;
@@ -270,6 +240,7 @@ body {
   color: var(--text-muted);
 }
 
+/* Button text - 14px, weight 500 */
 .text-button {
   font-size: 14px;
   font-weight: 500;
@@ -281,43 +252,53 @@ body {
    ============================================================================= */
 
 ::selection {
-  background-color: var(--primary-200);
+  background-color: var(--primary-100);
   color: var(--text-primary);
 }
 
 /* =============================================================================
    8. DARK MODE
+   Activated when .dark class is on <html> element
+   Uses same CSS variables with dark-appropriate values
    ============================================================================= */
 
 .dark {
-  --bg-app: #0f172a; /* slate-900 */
-  --bg-surface: #1e293b; /* slate-800 */
-  --bg-muted: #334155; /* slate-700 */
+  /* ---------------------------------------------------------------------------
+     8.1 Background Colors (Dark)
+     --------------------------------------------------------------------------- */
+  --bg-app: #0f172a; /* slate-900 - Main app background */
+  --bg-surface: #1e293b; /* slate-800 - Cards, panels, modals */
 
-  --text-primary: #f1f5f9; /* slate-100 */
-  --text-muted: #94a3b8; /* slate-400 */
+  /* ---------------------------------------------------------------------------
+     8.2 Text Colors (Dark)
+     --------------------------------------------------------------------------- */
+  --text-primary: #f1f5f9; /* slate-100 - Main text */
+  --text-muted: #94a3b8; /* slate-400 - Secondary text */
 
-  --border-subtle: #334155; /* slate-700 */
-  --border-strong: #475569; /* slate-600 */
+  /* ---------------------------------------------------------------------------
+     8.3 Border Colors (Dark)
+     --------------------------------------------------------------------------- */
+  --border-subtle: #334155; /* slate-700 - Dividers, borders */
 
-  --primary-100: #1e293b;
-  --primary-200: #334155;
-  --primary-600: #94a3b8; /* Lighter for dark mode */
-  --primary-700: #cbd5e1;
+  /* ---------------------------------------------------------------------------
+     8.4 Primary Brand Color (Dark)
+     --------------------------------------------------------------------------- */
+  --primary-100: #1e3a5f; /* Darker primary background */
+  --primary-600: #3b82f6; /* blue-500 - Slightly brighter for dark mode */
+  --primary-700: #2563eb; /* blue-600 - Hover state */
 
-  --accent-500: #fbbf24; /* Brighter amber for dark mode */
-  --accent-600: #f59e0b;
+  /* ---------------------------------------------------------------------------
+     8.5 Status Colors (Dark) - Slightly adjusted for better contrast
+     --------------------------------------------------------------------------- */
+  --success: #22c55e; /* green-500 - Brighter for dark backgrounds */
+  --warning: #f59e0b; /* amber-500 - Brighter for dark backgrounds */
+  --error: #ef4444; /* red-500 - Brighter for dark backgrounds */
+  --info: #0ea5e9; /* sky-500 - Brighter for dark backgrounds */
 
-  --success: #22c55e; /* Brighter green */
-  --success-bg: #14532d;
-  --warning: #f59e0b; /* Brighter amber */
-  --warning-bg: #451a03;
-  --error: #ef4444; /* Brighter red */
-  --error-bg: #450a0a;
-  --info: #0ea5e9; /* Brighter sky */
-  --info-bg: #0c4a6e;
-
-  --ring: #94a3b8;
+  /* ---------------------------------------------------------------------------
+     8.6 Focus Ring (Dark)
+     --------------------------------------------------------------------------- */
+  --ring: #3b82f6; /* blue-500 - Matches dark primary */
 }
 
 /* =============================================================================
@@ -330,12 +311,12 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-muted);
+  background: var(--bg-app);
   border-radius: var(--radius);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--border-subtle);
   border-radius: var(--radius);
 }
 
@@ -345,46 +326,107 @@ body {
 
 /* =============================================================================
    10. PRINT STYLES
+   Optimized for printing invoices and reports
    ============================================================================= */
 
 @media print {
+  /* Reset page margins for better use of paper */
   @page {
     margin: 1cm;
     size: A4;
   }
 
+  /* Force light mode colors when printing */
   :root {
     --bg-app: #ffffff;
     --bg-surface: #ffffff;
     --text-primary: #000000;
     --text-muted: #374151;
     --border-subtle: #d1d5db;
+    --primary-100: #dbeafe;
+    --primary-600: #2563eb;
+    --warning: #d97706;
   }
 
+  /* Hide UI elements not needed for print */
   [data-sidebar],
   nav,
-  header:not(.print-header),
+  header,
   aside,
   button:not(.print-visible),
+  .dialog-overlay,
+  [role="dialog"],
   .no-print {
     display: none !important;
   }
 
+  /* Make body full width */
   body {
     background: white !important;
     color: black !important;
     font-size: 12px !important;
+    line-height: 1.4 !important;
   }
 
+  /* Reset main content area */
   main {
     padding: 0 !important;
     margin: 0 !important;
     max-width: none !important;
   }
 
+  /* Table print styles */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 11px !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #9ca3af !important;
+    padding: 6px 8px !important;
+    text-align: left !important;
+    vertical-align: middle !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: 600 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Card styles */
+  .card,
+  [class*="Card"] {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Print header */
+  h1 {
+    font-size: 18px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Ensure colors print */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* Remove hover/focus styles */
+  *:hover,
+  *:focus {
+    background-color: inherit !important;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -404,9 +446,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--bg-muted) 25%,
+    var(--border-subtle) 25%,
     var(--bg-surface) 50%,
-    var(--bg-muted) 75%
+    var(--border-subtle) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

@@ -77,7 +77,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               variant="ghost"
               className="relative flex items-center gap-2 px-2"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-muted">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-app">
                 <span className="text-sm font-medium text-text-primary">
                   {user.name?.charAt(0).toUpperCase()}
                 </span>
