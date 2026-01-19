@@ -17,6 +17,7 @@ export { Textarea, type TextareaProps } from "./textarea";
 export { Label, type LabelProps } from "./label";
 export { Badge, badgeVariants, type BadgeProps } from "./badge";
 export { Checkbox } from "./checkbox";
+export { Switch } from "./switch";
 export { Spinner, PageLoader, type SpinnerProps } from "./spinner";
 export { EmptyState, type EmptyStateProps } from "./empty-state";
 export { StatCard, type StatCardProps } from "./stat-card";

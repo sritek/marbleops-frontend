@@ -445,3 +445,33 @@ export interface RecordPaymentInput {
   reference?: string;
   notes?: string;
 }
+
+export interface CreateUserInput {
+  name: string;
+  phone: string;
+  password: string;
+  role: Role;
+  storeId?: string;
+}
+
+export interface UpdateUserInput {
+  name?: string;
+  phone?: string;
+  password?: string;
+  role?: Role;
+  storeId?: string;
+  isActive?: boolean;
+}
+
+export interface CreateStoreInput {
+  name: string;
+  address?: string;
+  phone?: string;
+}
+
+export interface UpdateStoreInput {
+  name?: string;
+  address?: string;
+  phone?: string;
+  isActive?: boolean;
+}

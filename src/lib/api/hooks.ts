@@ -17,6 +17,10 @@ import type {
   CreateOrderInput,
   CreateInvoiceInput,
   RecordPaymentInput,
+  CreateUserInput,
+  UpdateUserInput,
+  CreateStoreInput,
+  UpdateStoreInput,
 } from "@/types";
 
 // =============================================================================
@@ -97,6 +101,109 @@ export function useStore(id: string) {
     queryKey: queryKeys.store(id),
     queryFn: () => api.get<Store>(`/stores/${id}`),
     enabled: !!id,
+  });
+}
+
+export function useCreateStore() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateStoreInput) =>
+      api.post<Store>("/stores", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores });
+      toast.success("Store created successfully");
+    },
+    onError: (error) => {
+      const message = isApiError(error) ? error.message : "Failed to create store";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateStore(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateStoreInput) =>
+      api.put<Store>(`/stores/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores });
+      queryClient.invalidateQueries({ queryKey: queryKeys.store(id) });
+      toast.success("Store updated successfully");
+    },
+    onError: (error) => {
+      const message = isApiError(error) ? error.message : "Failed to update store";
+      toast.error(message);
+    },
+  });
+}
+
+// =============================================================================
+// USER HOOKS
+// =============================================================================
+
+export function useUsers(filters?: {
+  role?: string;
+  storeId?: string;
+  search?: string;
+  isActive?: boolean;
+}) {
+  return useQuery({
+    queryKey: ["users", "list", filters],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (filters?.role) params.set("role", filters.role);
+      if (filters?.storeId) params.set("storeId", filters.storeId);
+      if (filters?.search) params.set("search", filters.search);
+      if (filters?.isActive !== undefined) params.set("isActive", String(filters.isActive));
+
+      const queryString = params.toString();
+      return api.get<User[]>(`/users${queryString ? `?${queryString}` : ""}`);
+    },
+  });
+}
+
+export function useUser(id: string) {
+  return useQuery({
+    queryKey: queryKeys.user(id),
+    queryFn: () => api.get<User>(`/users/${id}`),
+    enabled: !!id,
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateUserInput) =>
+      api.post<User>("/users", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users });
+      toast.success("User created successfully");
+    },
+    onError: (error) => {
+      const message = isApiError(error) ? error.message : "Failed to create user";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateUser(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateUserInput) =>
+      api.put<User>(`/users/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user(id) });
+      toast.success("User updated successfully");
+    },
+    onError: (error) => {
+      const message = isApiError(error) ? error.message : "Failed to update user";
+      toast.error(message);
+    },
   });
 }
 

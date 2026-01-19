@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Home, Search, HardHat } from "lucide-react";
 
@@ -7,6 +10,8 @@ import { Home, Search, HardHat } from "lucide-react";
  * A playful, marble-industry themed not found page
  */
 export default function NotFound() {
+  const t = useTranslations("errors");
+
   return (
     <div className="min-h-screen bg-bg-app flex items-center justify-center p-4">
       {/* Background pattern - subtle marble veins */}
@@ -72,22 +77,21 @@ export default function NotFound() {
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-text-muted">
             <HardHat className="h-5 w-5" />
-            <span className="text-sm font-medium uppercase tracking-wider">Lost in the Quarry</span>
+            <span className="text-sm font-medium uppercase tracking-wider">{t("notFoundTitle")}</span>
           </div>
 
           <h1 className="text-2xl md:text-3xl font-semibold text-text-primary">
-            This slab got chipped!
+            {t("notFoundHeading")}
           </h1>
 
           <p className="text-text-muted max-w-md mx-auto">
-            Looks like this page cracked under pressure and rolled off somewhere. 
-            Even our best forklift operators couldn&apos;t find it.
+            {t("notFoundDescription")}
           </p>
 
           {/* Fun facts */}
           <div className="py-4">
             <p className="text-sm text-text-muted italic">
-              &quot;Not all who wander are lost... but this page definitely is.&quot;
+              &quot;{t("notFoundQuote")}&quot;
             </p>
           </div>
 
@@ -96,14 +100,14 @@ export default function NotFound() {
             <Button asChild size="lg">
               <Link href="/dashboard">
                 <Home className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                {t("backToDashboard")}
               </Link>
             </Button>
             
             <Button variant="secondary" asChild size="lg">
               <Link href="/inventory">
                 <Search className="h-4 w-4 mr-2" />
-                Search Inventory
+                {t("searchInventory")}
               </Link>
             </Button>
           </div>
@@ -111,7 +115,7 @@ export default function NotFound() {
 
         {/* Footer joke */}
         <p className="mt-12 text-xs text-text-muted">
-          Error Code: SLAB_NOT_FOUND • Hardness: 404 Mohs • Weight: 0 kg (missing)
+          {t("notFoundCode")} • {t("notFoundHardness")} • {t("notFoundWeight")}
         </p>
       </div>
     </div>
