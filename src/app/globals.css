@@ -264,41 +264,64 @@ body {
 
 .dark {
   /* ---------------------------------------------------------------------------
-     8.1 Background Colors (Dark)
+     8.1 Background Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --bg-app: #0f172a; /* slate-900 - Main app background */
-  --bg-surface: #1e293b; /* slate-800 - Cards, panels, modals */
+  --bg-app: #000000; /* Pure black - Main app background */
+  --bg-surface: #1a1a1a; /* Dark gray - Cards, panels, modals */
 
   /* ---------------------------------------------------------------------------
-     8.2 Text Colors (Dark)
+     8.2 Text Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --text-primary: #f1f5f9; /* slate-100 - Main text */
-  --text-muted: #94a3b8; /* slate-400 - Secondary text */
+  --text-primary: #ffffff; /* Pure white - Main text */
+  --text-muted: #b3b3b3; /* Light gray - Secondary text */
 
   /* ---------------------------------------------------------------------------
-     8.3 Border Colors (Dark)
+     8.3 Border Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --border-subtle: #334155; /* slate-700 - Dividers, borders */
+  --border-subtle: #404040; /* Medium gray - Dividers, borders */
 
   /* ---------------------------------------------------------------------------
-     8.4 Primary Brand Color (Dark)
+     8.4 Primary Brand Color (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --primary-100: #1e3a5f; /* Darker primary background */
-  --primary-600: #3b82f6; /* blue-500 - Slightly brighter for dark mode */
-  --primary-700: #2563eb; /* blue-600 - Hover state */
+  --primary-100: #2a2a2a; /* Dark gray - Subtle background, selected states */
+  --primary-600: #404040; /* Medium gray - Primary buttons (white text on gray bg, visible against black) */
+  --primary-700: #ffffff; /* White - Active sidebar items and hover state for primary elements */
 
   /* ---------------------------------------------------------------------------
-     8.5 Status Colors (Dark) - Slightly adjusted for better contrast
+     8.5 Status Colors (Dark) - Black & White Theme
+     Using different shades of gray to differentiate status
      --------------------------------------------------------------------------- */
-  --success: #22c55e; /* green-500 - Brighter for dark backgrounds */
-  --warning: #f59e0b; /* amber-500 - Brighter for dark backgrounds */
-  --error: #ef4444; /* red-500 - Brighter for dark backgrounds */
-  --info: #0ea5e9; /* sky-500 - Brighter for dark backgrounds */
+  --success: #808080; /* Medium gray - Paid, Present, Completed, Active */
+  --warning: #a0a0a0; /* Light gray - Pending, Due soon, Attention needed */
+  --error: #ffffff; /* White - Failed, Absent, Overdue, Delete actions */
+  --info: #b3b3b3; /* Light gray - System info, neutral highlights */
 
   /* ---------------------------------------------------------------------------
-     8.6 Focus Ring (Dark)
+     8.6 Focus Ring (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --ring: #3b82f6; /* blue-500 - Matches dark primary */
+  --ring: #ffffff; /* White - Focus ring color */
+}
+
+/* Active sidebar items in dark mode - force white text */
+.dark [data-sidebar] nav a.bg-primary-100 {
+  color: #ffffff !important;
+}
+
+/* Primary button hover in dark mode - white background needs black text */
+.dark button[class*="bg-primary-600"]:hover,
+.dark button[class*="bg-primary-700"],
+.dark button[class*="hover:bg-primary-700"]:hover {
+  color: #000000 !important;
+}
+
+/* Also target any element with primary-700 background in dark mode - text should be black */
+.dark [class*="bg-primary-700"] {
+  color: #000000 !important;
+}
+
+/* Ensure text in login form card stays readable when button is hovered */
+.dark form button[type="submit"]:hover {
+  color: #000000 !important;
 }
 
 /* =============================================================================
