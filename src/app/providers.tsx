@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth";
 import { StoreProvider } from "@/lib/hooks";
+import { TranslationProvider } from "@/lib/i18n";
 
 // Create a client
 function makeQueryClient() {
@@ -43,27 +44,29 @@ export function Providers({ children }: ProvidersProps) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AuthProvider>
-          <StoreProvider>
-            {children}
-          </StoreProvider>
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            toastOptions={{
-              duration: 4000,
-            }}
-          />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <TranslationProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <StoreProvider>
+              {children}
+            </StoreProvider>
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              toastOptions={{
+                duration: 4000,
+              }}
+            />
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </TranslationProvider>
   );
 }

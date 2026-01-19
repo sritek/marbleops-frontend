@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,6 +30,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
   const { login, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -59,7 +61,7 @@ export default function LoginPage() {
         phone: data.phone.replace(/\D/g, ""), // Strip non-digits
         password: data.password,
       });
-      toast.success("Welcome back!");
+      toast.success(t("welcomeBack"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login failed";
       toast.error(message);
@@ -93,7 +95,7 @@ export default function LoginPage() {
             <FormInput
               {...register("phone")}
               name="phone"
-              label="Phone Number"
+              label={t("phone")}
               type="tel"
               placeholder="Enter your phone number"
               error={errors.phone?.message}
@@ -108,7 +110,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-text-primary"
               >
-                Password <span className="text-error">*</span>
+                {t("password")} <span className="text-error">*</span>
               </label>
               <div className="relative">
                 <input
@@ -150,14 +152,13 @@ export default function LoginPage() {
               size="lg"
               isLoading={isLoading}
             >
-              Sign In
+              {t("login")}
             </Button>
           </form>
 
           {/* Help text */}
           <p className="mt-6 text-center text-sm text-text-muted">
-            Contact your administrator if you need access or forgot your
-            password.
+            {t("contactAdmin")}
           </p>
         </CardContent>
       </Card>

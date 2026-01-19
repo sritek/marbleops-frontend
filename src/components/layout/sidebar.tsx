@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { navigationItems, adminNavItems, appMeta } from "@/config/navigation";
@@ -54,17 +55,7 @@ export function Sidebar() {
 
         {/* Admin section */}
         {visibleAdminItems.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <p className="px-3 mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
-              Settings
-            </p>
-            <ul className="space-y-1">
-              {visibleAdminItems.map((item) => (
-                <NavItemLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </ul>
-          </>
+          <AdminSection items={visibleAdminItems} pathname={pathname} />
         )}
       </nav>
 
@@ -80,23 +71,13 @@ export function Sidebar() {
  * Individual nav item
  */
 function NavItemLink({ item, pathname }: { item: NavItem; pathname: string }) {
+  const t = useTranslations("nav");
   const isActive =
     pathname === item.href || pathname.startsWith(`${item.href}/`);
   const Icon = item.icon;
 
-  // Simple English labels (will be replaced with translations)
-  const labels: Record<string, string> = {
-    "nav.dashboard": "Dashboard",
-    "nav.inventory": "Inventory",
-    "nav.orders": "Orders",
-    "nav.invoices": "Invoices",
-    "nav.payments": "Payments",
-    "nav.parties": "Parties",
-    "nav.reports": "Reports",
-    "nav.users": "Users",
-    "nav.stores": "Stores",
-    "nav.settings": "Settings",
-  };
+  // Extract the key from "nav.dashboard" -> "dashboard"
+  const translationKey = item.labelKey.replace("nav.", "");
 
   return (
     <li>
@@ -110,9 +91,30 @@ function NavItemLink({ item, pathname }: { item: NavItem; pathname: string }) {
         )}
       >
         <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-        <span>{labels[item.labelKey] || item.labelKey}</span>
+        <span>{t(translationKey)}</span>
       </Link>
     </li>
+  );
+}
+
+/**
+ * Admin section with settings header
+ */
+function AdminSection({ items, pathname }: { items: NavItem[]; pathname: string }) {
+  const t = useTranslations("nav");
+  
+  return (
+    <>
+      <Separator className="my-4" />
+      <p className="px-3 mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
+        {t("settings")}
+      </p>
+      <ul className="space-y-1">
+        {items.map((item) => (
+          <NavItemLink key={item.href} item={item} pathname={pathname} />
+        ))}
+      </ul>
+    </>
   );
 }
 

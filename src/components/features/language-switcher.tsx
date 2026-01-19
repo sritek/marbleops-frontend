@@ -9,31 +9,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { config } from "@/config";
-import { locales, localeNames, type Locale } from "@/lib/i18n";
+import { locales, localeNames, useLocale } from "@/lib/i18n";
 
 /**
  * Language switcher component
+ * Uses the translation context to change locale without page reload
  */
 export function LanguageSwitcher() {
-  const [currentLocale, setCurrentLocale] = React.useState<Locale>("en");
-
-  // Load saved locale on mount
-  React.useEffect(() => {
-    const saved = localStorage.getItem(config.storage.localeKey) as Locale;
-    if (saved && locales.includes(saved)) {
-      setCurrentLocale(saved);
-    }
-  }, []);
-
-  const handleChange = (locale: Locale) => {
-    setCurrentLocale(locale);
-    localStorage.setItem(config.storage.localeKey, locale);
-    // In a full implementation with next-intl routing:
-    // router.replace(addLocalePrefix(pathname, locale));
-    // For now, we'll just save the preference
-    window.location.reload();
-  };
+  const { locale: currentLocale, setLocale } = useLocale();
 
   return (
     <DropdownMenu>
@@ -46,7 +29,7 @@ export function LanguageSwitcher() {
         {locales.map((locale) => (
           <DropdownMenuItem
             key={locale}
-            onClick={() => handleChange(locale)}
+            onClick={() => setLocale(locale)}
             className={locale === currentLocale ? "bg-bg-app" : ""}
           >
             {localeNames[locale]}

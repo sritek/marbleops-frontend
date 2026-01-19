@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { navigationItems, adminNavItems, appMeta } from "@/config/navigation";
@@ -21,6 +22,7 @@ interface MobileNavProps {
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
   const { hasPermission } = useAuth();
+  const t = useTranslations("nav");
 
   // Filter navigation items based on permissions
   const visibleNavItems = navigationItems.filter((item) =>
@@ -30,20 +32,6 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const visibleAdminItems = adminNavItems.filter((item) =>
     hasPermission(item.permission)
   );
-
-  // Simple English labels
-  const labels: Record<string, string> = {
-    "nav.dashboard": "Dashboard",
-    "nav.inventory": "Inventory",
-    "nav.orders": "Orders",
-    "nav.invoices": "Invoices",
-    "nav.payments": "Payments",
-    "nav.parties": "Parties",
-    "nav.reports": "Reports",
-    "nav.users": "Users",
-    "nav.stores": "Stores",
-    "nav.settings": "Settings",
-  };
 
   // Close on path change
   React.useEffect(() => {
@@ -93,6 +81,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 pathname === item.href ||
                 pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
+              const translationKey = item.labelKey.replace("nav.", "");
 
               return (
                 <li key={item.href}>
@@ -107,7 +96,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                    <span>{labels[item.labelKey] || item.labelKey}</span>
+                    <span>{t(translationKey)}</span>
                   </Link>
                 </li>
               );
@@ -119,7 +108,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
             <>
               <div className="my-4 h-px bg-border-subtle" />
               <p className="px-3 mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
-                Settings
+                {t("settings")}
               </p>
               <ul className="space-y-1">
                 {visibleAdminItems.map((item) => {
@@ -127,6 +116,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     pathname === item.href ||
                     pathname.startsWith(`${item.href}/`);
                   const Icon = item.icon;
+                  const translationKey = item.labelKey.replace("nav.", "");
 
                   return (
                     <li key={item.href}>
@@ -141,7 +131,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                         )}
                       >
                         <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                        <span>{labels[item.labelKey] || item.labelKey}</span>
+                        <span>{t(translationKey)}</span>
                       </Link>
                     </li>
                   );

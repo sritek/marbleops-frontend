@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Clock,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useDashboardStats } from "@/lib/api";
 import { useStore } from "@/lib/hooks";
 import { useAuth } from "@/lib/auth";
@@ -26,6 +27,8 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { currentStore } = useStore();
   const { data: stats, isLoading } = useDashboardStats();
+  const t = useTranslations("dashboard");
+  const tNav = useTranslations("nav");
 
   return (
     <div className="space-y-6">
@@ -33,7 +36,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">
-            Welcome back, {user?.name?.split(" ")[0]}
+            {t("welcome", { name: user?.name?.split(" ")[0] || "" })}
           </h1>
           <p className="text-sm text-text-muted">
             {currentStore?.name || "All Stores"} • {new Date().toLocaleDateString("en-IN", {
@@ -63,14 +66,14 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Today's Sales"
+          title={t("todaysSales")}
           value={stats ? formatCurrency(stats.todaySales.amount) : "—"}
           description={stats ? `${stats.todaySales.count} orders` : undefined}
           icon={TrendingUp}
           isLoading={isLoading}
         />
         <StatCard
-          title="Pending Payments"
+          title={t("pendingPayments")}
           value={stats ? formatCurrency(stats.pendingPayments.amount) : "—"}
           description={
             stats
@@ -81,14 +84,14 @@ export default function DashboardPage() {
           isLoading={isLoading}
         />
         <StatCard
-          title="Low Stock Alerts"
+          title={t("lowStockAlerts")}
           value={stats?.lowStockAlerts.count ?? "—"}
           description="items need attention"
           icon={AlertTriangle}
           isLoading={isLoading}
         />
         <StatCard
-          title="Active Orders"
+          title={t("activeOrders")}
           value={stats?.activeOrders.count ?? "—"}
           description={
             stats
@@ -105,7 +108,7 @@ export default function DashboardPage() {
         {/* Action Items */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Action Items</CardTitle>
+            <CardTitle className="text-base">{t("actionItems")}</CardTitle>
             <Badge variant="warning">{getActionCount(stats)}</Badge>
           </CardHeader>
           <CardContent>
@@ -122,7 +125,7 @@ export default function DashboardPage() {
         {/* Low Stock Items */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Low Stock Items</CardTitle>
+            <CardTitle className="text-base">{t("lowStockAlerts")}</CardTitle>
             <Button variant="link" size="sm" asChild>
               <Link href="/inventory?status=low">
                 View all
@@ -173,32 +176,32 @@ export default function DashboardPage() {
         {/* Quick Stats */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quick Links</CardTitle>
+            <CardTitle className="text-base">{t("quickLinks")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               <QuickLinkCard
                 href="/inventory"
                 icon={Package}
-                label="Inventory"
+                label={tNav("inventory")}
                 description="View & manage stock"
               />
               <QuickLinkCard
                 href="/orders"
                 icon={ShoppingCart}
-                label="Orders"
+                label={tNav("orders")}
                 description="Track orders"
               />
               <QuickLinkCard
                 href="/invoices"
                 icon={FileText}
-                label="Invoices"
+                label={tNav("invoices")}
                 description="Billing & payments"
               />
               <QuickLinkCard
                 href="/payments"
                 icon={Wallet}
-                label="Payments"
+                label={tNav("payments")}
                 description="Record transactions"
               />
             </div>
@@ -208,7 +211,7 @@ export default function DashboardPage() {
         {/* Recent Activity Placeholder */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Recent Activity</CardTitle>
+            <CardTitle className="text-base">{t("recentActivity")}</CardTitle>
             <Clock className="h-4 w-4 text-text-muted" />
           </CardHeader>
           <CardContent>
