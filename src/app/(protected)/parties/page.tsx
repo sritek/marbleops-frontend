@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Search, User, Phone, MapPin } from "lucide-react";
+import { Plus, Search, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
 import { useParties } from "@/lib/api";
 import { usePermission } from "@/lib/auth";
@@ -22,13 +23,6 @@ import {
 } from "@/components/ui/select";
 import type { Party, PartyType } from "@/types";
 
-const typeOptions = [
-  { value: "all", label: "All Types" },
-  { value: "CUSTOMER", label: "Customers" },
-  { value: "SUPPLIER", label: "Suppliers" },
-  { value: "BOTH", label: "Both" },
-];
-
 const typeVariants: Record<PartyType, "info" | "accent" | "default"> = {
   CUSTOMER: "info",
   SUPPLIER: "accent",
@@ -39,6 +33,8 @@ export default function PartiesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const canEdit = usePermission("PARTY_EDIT");
+  const t = useTranslations("parties");
+  const tCommon = useTranslations("common");
 
   const [search, setSearch] = React.useState(searchParams.get("search") || "");
   const [type, setType] = React.useState(searchParams.get("type") || "all");
@@ -54,10 +50,18 @@ export default function PartiesPage() {
     type: type !== "all" ? type : undefined,
   });
 
+  // Type options with translations
+  const typeOptions = [
+    { value: "all", label: tCommon("allTypes") },
+    { value: "CUSTOMER", label: t("type.customers") },
+    { value: "SUPPLIER", label: t("type.suppliers") },
+    { value: "BOTH", label: t("type.both") },
+  ];
+
   const columns: ColumnDef<Party>[] = [
     {
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader column={column}>Name</SortableHeader>,
+      header: ({ column }) => <SortableHeader column={column}>{t("name")}</SortableHeader>,
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-app">
@@ -74,16 +78,16 @@ export default function PartiesPage() {
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: tCommon("type"),
       cell: ({ row }) => (
         <Badge variant={typeVariants[row.original.type]}>
-          {row.original.type}
+          {t(`type.${row.original.type.toLowerCase()}`)}
         </Badge>
       ),
     },
     {
       accessorKey: "currentBalance",
-      header: ({ column }) => <SortableHeader column={column}>Balance</SortableHeader>,
+      header: ({ column }) => <SortableHeader column={column}>{t("balance")}</SortableHeader>,
       cell: ({ row }) => {
         const balance = row.original.currentBalance;
         const isPositive = balance >= 0;
@@ -97,10 +101,10 @@ export default function PartiesPage() {
     },
     {
       accessorKey: "isActive",
-      header: "Status",
+      header: tCommon("status"),
       cell: ({ row }) => (
         <Badge variant={row.original.isActive ? "success" : "default"}>
-          {row.original.isActive ? "Active" : "Inactive"}
+          {row.original.isActive ? tCommon("active") : tCommon("inactive")}
         </Badge>
       ),
     },
@@ -108,7 +112,7 @@ export default function PartiesPage() {
       id: "actions",
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/parties/${row.original.id}`}>View</Link>
+          <Link href={`/parties/${row.original.id}`}>{tCommon("view")}</Link>
         </Button>
       ),
     },
@@ -118,16 +122,14 @@ export default function PartiesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Parties</h1>
-          <p className="text-sm text-text-muted">
-            Manage customers and suppliers
-          </p>
+          <h1 className="text-2xl font-semibold text-text-primary">{t("title")}</h1>
+          <p className="text-sm text-text-muted">{t("subtitle")}</p>
         </div>
         {canEdit && (
           <Button asChild>
             <Link href="/parties/new">
               <Plus className="h-4 w-4 mr-2" />
-              Add Party
+              {t("addParty")}
             </Link>
           </Button>
         )}
@@ -137,7 +139,7 @@ export default function PartiesPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <Input
-            placeholder="Search by name, phone..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -146,7 +148,7 @@ export default function PartiesPage() {
 
         <Select value={type} onValueChange={setType}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Type" />
+            <SelectValue placeholder={tCommon("type")} />
           </SelectTrigger>
           <SelectContent>
             {typeOptions.map((option) => (
@@ -168,9 +170,11 @@ export default function PartiesPage() {
           data={parties}
           onRowClick={(row) => router.push(`/parties/${row.id}`)}
           emptyState={{
-            title: "No parties found",
-            description: "Add your first customer or supplier",
-            actionLabel: canEdit ? "Add Party" : undefined,
+            title: t("noParties"),
+            description: search || type !== "all"
+              ? tCommon("tryAdjustingFilters")
+              : t("noPartiesDesc"),
+            actionLabel: canEdit ? t("addParty") : undefined,
             onAction: canEdit ? () => router.push("/parties/new") : undefined,
           }}
         />

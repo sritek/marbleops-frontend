@@ -1,0 +1,436 @@
+# MarbleOps Frontend Development Rules
+
+## Project Overview
+MarbleOps is a comprehensive business management application for marble and granite operations. It supports inventory management, order processing, invoicing, payments, and reporting with multi-language support (English/Hindi) and responsive design.
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Public auth routes (login)
+│   ├── (protected)/       # Authenticated routes
+│   ├── layout.tsx         # Root layout
+│   ├── providers.tsx      # Context providers
+│   └── globals.css        # Design system tokens
+├── components/
+│   ├── ui/                # Reusable UI primitives
+│   ├── features/          # Domain-specific components
+│   ├── layout/            # Layout components (Sidebar, Header)
+│   └── forms/             # Form components
+├── lib/
+│   ├── api/               # API client and TanStack Query hooks
+│   ├── auth/              # Auth context and hooks
+│   ├── hooks/             # Custom React hooks
+│   ├── i18n/              # Translation provider and config
+│   ├── offline/           # PWA and offline support
+│   └── utils/             # Utility functions
+├── config/                # App configuration
+├── types/                 # TypeScript type definitions
+└── messages/              # Translation files (en.json, hi.json)
+```
+
+---
+
+## Component Guidelines
+
+### 1. File Organization
+- **Pages** should be thin orchestrators, NOT contain all logic
+- Extract complex sections into feature components
+- Keep page files under 150 lines
+- Use barrel exports (index.ts) for each directory
+
+### 2. Component Creation
+```tsx
+"use client";  // Always specify for client components
+
+import * as React from "react";  // Standard import pattern
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+
+interface MyComponentProps {
+  // Props interface
+}
+
+/**
+ * Component description
+ */
+export function MyComponent({ ...props }: MyComponentProps) {
+  const t = useTranslations("namespace");
+  
+  return (
+    // JSX
+  );
+}
+```
+
+### 3. Component Categories
+
+**UI Components (`components/ui/`):**
+- Reusable primitives (Button, Input, Card, Badge, etc.)
+- No business logic
+- Accept className for customization
+- Use Radix UI for accessibility
+
+**Feature Components (`components/features/`):**
+- Domain-specific (InventoryCard, OrderSummary, etc.)
+- May include business logic
+- Compose UI components
+
+**Layout Components (`components/layout/`):**
+- App shell, Sidebar, Header, MobileNav
+- Handle navigation and layout structure
+
+---
+
+## Translation Rules (CRITICAL)
+
+### All User-Facing Text MUST Use Translations
+
+```tsx
+// BAD - Hardcoded text
+<h1>Inventory</h1>
+<Button>Add Item</Button>
+
+// GOOD - Using translations
+const t = useTranslations("inventory");
+<h1>{t("title")}</h1>
+<Button>{t("addItem")}</Button>
+```
+
+### Translation File Structure
+```json
+{
+  "namespace": {
+    "key": "English text",
+    "nestedKey": {
+      "subKey": "More text"
+    }
+  }
+}
+```
+
+### Rules
+1. Add keys to BOTH `en.json` and `hi.json` simultaneously
+2. Use namespaced keys: `section.key` format
+3. Support interpolation: `"welcome": "Welcome, {name}"`
+4. For status/type enums, use nested objects:
+   ```json
+   "status": {
+     "active": "Active",
+     "inactive": "Inactive"
+   }
+   ```
+
+---
+
+## Design System
+
+### Color Tokens (from globals.css)
+```css
+/* Text */
+text-text-primary      /* Main text */
+text-text-secondary    /* Secondary text */
+text-text-muted        /* Muted/disabled text */
+
+/* Backgrounds */
+bg-bg-app              /* Page background */
+bg-bg-surface          /* Card/panel background */
+
+/* Borders */
+border-border-subtle   /* Default borders */
+border-border-strong   /* Emphasized borders */
+
+/* Brand */
+bg-primary-600         /* Primary actions */
+text-primary-600       /* Primary text/icons */
+
+/* Status */
+text-success / bg-success-bg
+text-warning / bg-warning-bg
+text-error / bg-error-bg
+text-info / bg-info-bg
+```
+
+### Using Design Tokens
+```tsx
+// Use cn() for conditional classes
+import { cn } from "@/lib/utils";
+
+<div className={cn(
+  "bg-bg-surface border border-border-subtle",
+  isActive && "border-primary-600"
+)}>
+```
+
+### Spacing & Layout
+- Use Tailwind spacing: `p-4`, `gap-6`, `space-y-4`
+- Responsive: Mobile-first with `sm:`, `lg:` breakpoints
+- Container: `max-w-sm`, `max-w-md`, `max-w-lg`
+
+---
+
+## API Patterns
+
+### Using TanStack Query Hooks
+```tsx
+import { useInventoryList, useCreateInventory } from "@/lib/api";
+
+function MyComponent() {
+  // Queries
+  const { data, isLoading, error } = useInventoryList({ status: "AVAILABLE" });
+  
+  // Mutations
+  const createMutation = useCreateInventory();
+  
+  const handleCreate = () => {
+    createMutation.mutate(data, {
+      onSuccess: () => toast.success("Created!"),
+      onError: (error) => toast.error(error.message),
+    });
+  };
+}
+```
+
+### Always Handle States
+```tsx
+if (isLoading) return <Spinner />;
+if (error) return <ErrorState message={error.message} />;
+if (data.length === 0) return <EmptyState />;
+return <DataList data={data} />;
+```
+
+---
+
+## Form Patterns
+
+### Use react-hook-form with Zod
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+});
+
+type FormData = z.infer<typeof schema>;
+
+function MyForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
+  
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <FormInput
+        {...register("name")}
+        label="Name"
+        error={errors.name?.message}
+      />
+    </form>
+  );
+}
+```
+
+---
+
+## Code Style
+
+### Imports Order
+```tsx
+// 1. React
+import * as React from "react";
+
+// 2. External libraries
+import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
+
+// 3. Internal - lib
+import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+
+// 4. Internal - components
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+// 5. Types
+import type { User } from "@/types";
+```
+
+### Naming Conventions
+- Components: PascalCase (`InventoryCard`)
+- Hooks: camelCase with `use` prefix (`useInventory`)
+- Utils: camelCase (`formatCurrency`)
+- Types: PascalCase (`InventoryItem`)
+- Files: kebab-case (`inventory-card.tsx`)
+
+### TypeScript
+- Use strict mode
+- Define interfaces for component props
+- Extract shared types to `@/types`
+- Prefer `interface` over `type` for objects
+
+---
+
+## Performance Best Practices
+
+### Memoization
+```tsx
+// Memoize expensive computations
+const filteredData = React.useMemo(
+  () => data.filter(item => item.status === status),
+  [data, status]
+);
+
+// Memoize callbacks passed to children
+const handleClick = React.useCallback(() => {
+  // handler logic
+}, [dependency]);
+```
+
+### Code Splitting
+- Use dynamic imports for large components
+- Lazy load routes where appropriate
+
+### Images
+- Use `next/image` for optimized loading
+- Provide width/height or fill prop
+- Use appropriate formats (WebP)
+
+---
+
+## Accessibility (a11y)
+
+### Required Practices
+- All interactive elements must be keyboard accessible
+- Use semantic HTML (`<button>`, `<nav>`, `<main>`)
+- Provide `aria-label` for icon-only buttons
+- Use `sr-only` class for screen reader text
+- Ensure sufficient color contrast
+
+```tsx
+// Icon button with accessibility
+<Button variant="ghost" size="icon" aria-label={t("openMenu")}>
+  <Menu className="h-5 w-5" />
+</Button>
+
+// Screen reader only text
+<span className="sr-only">Loading content</span>
+```
+
+---
+
+## Error Handling
+
+### Display User-Friendly Messages
+```tsx
+try {
+  await api.createOrder(data);
+  toast.success(t("orders.createSuccess"));
+} catch (error) {
+  const message = error instanceof Error 
+    ? error.message 
+    : t("errors.serverError");
+  toast.error(message);
+}
+```
+
+### Form Validation Errors
+- Show inline errors below fields
+- Use error colors from design system
+- Translate error messages
+
+---
+
+## Git Commit Guidelines
+
+### Commit Message Format
+```
+type(scope): description
+
+feat(inventory): add bulk upload functionality
+fix(auth): resolve token refresh issue
+style(ui): update button hover states
+refactor(api): simplify query hooks
+docs: update README with setup instructions
+```
+
+### Types
+- `feat`: New feature
+- `fix`: Bug fix
+- `style`: UI/styling changes
+- `refactor`: Code restructuring
+- `docs`: Documentation
+- `chore`: Build/config changes
+
+---
+
+## Testing Checklist
+
+Before submitting changes:
+- [ ] All pages work in both English and Hindi
+- [ ] Responsive design works on mobile/tablet/desktop
+- [ ] Loading states are displayed
+- [ ] Empty states are handled
+- [ ] Error states are handled
+- [ ] Forms validate correctly
+- [ ] No console errors/warnings
+- [ ] Accessibility: keyboard navigation works
+
+---
+
+## Quick Reference
+
+### Common Imports
+```tsx
+// UI Components
+import { Button, Card, Input, Badge, Spinner } from "@/components/ui";
+
+// Hooks
+import { useAuth, usePermission } from "@/lib/auth";
+import { useStore } from "@/lib/hooks";
+
+// Translations
+import { useTranslations } from "next-intl";
+
+// Utils
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
+```
+
+### Page Template
+```tsx
+"use client";
+
+import * as React from "react";
+import { useTranslations } from "next-intl";
+import { usePermission } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+
+export default function MyPage() {
+  const t = useTranslations("myNamespace");
+  const canEdit = usePermission("MY_PERMISSION");
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-text-primary">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-text-muted">{t("subtitle")}</p>
+        </div>
+        {canEdit && <Button>{t("addButton")}</Button>}
+      </div>
+
+      {/* Content */}
+      {/* ... */}
+    </div>
+  );
+}
+```

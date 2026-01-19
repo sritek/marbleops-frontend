@@ -9,59 +9,58 @@ import {
   Users,
   FileText,
   Wallet,
-  Download,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePermission } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
-const reports = [
-  {
-    id: "sales",
-    title: "Sales Report",
-    description: "View sales summary, trends, and top customers",
-    icon: TrendingUp,
-    href: "/reports/sales",
-  },
-  {
-    id: "stock",
-    title: "Stock Report",
-    description: "Inventory valuation and stock levels",
-    icon: Package,
-    href: "/reports/stock",
-  },
-  {
-    id: "party-ledger",
-    title: "Party Ledger",
-    description: "Transaction history by customer/supplier",
-    icon: Users,
-    href: "/reports/party-ledger",
-  },
-  {
-    id: "invoices",
-    title: "Invoice Report",
-    description: "Invoice summary and aging analysis",
-    icon: FileText,
-    href: "/reports/invoices",
-  },
-  {
-    id: "payments",
-    title: "Payment Report",
-    description: "Payment collection by method and date",
-    icon: Wallet,
-    href: "/reports/payments",
-  },
-];
 
 export default function ReportsPage() {
   const canViewReports = usePermission("REPORTS_VIEW");
+  const t = useTranslations("reports");
+
+  // Define reports with translation keys
+  const reports = [
+    {
+      id: "sales",
+      titleKey: "salesReport",
+      descKey: "salesReportDesc",
+      icon: TrendingUp,
+      href: "/reports/sales",
+    },
+    {
+      id: "stock",
+      titleKey: "stockReport",
+      descKey: "stockReportDesc",
+      icon: Package,
+      href: "/reports/stock",
+    },
+    {
+      id: "party-ledger",
+      titleKey: "partyLedger",
+      descKey: "partyLedgerDesc",
+      icon: Users,
+      href: "/reports/party-ledger",
+    },
+    {
+      id: "invoices",
+      titleKey: "invoiceReport",
+      descKey: "invoiceReportDesc",
+      icon: FileText,
+      href: "/reports/invoices",
+    },
+    {
+      id: "payments",
+      titleKey: "paymentReport",
+      descKey: "paymentReportDesc",
+      icon: Wallet,
+      href: "/reports/payments",
+    },
+  ];
 
   if (!canViewReports) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-text-muted">
-          You don't have permission to view reports
-        </p>
+        <p className="text-text-muted">{t("noPermission")}</p>
       </div>
     );
   }
@@ -70,10 +69,8 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Reports</h1>
-          <p className="text-sm text-text-muted">
-            View and export business reports
-          </p>
+          <h1 className="text-2xl font-semibold text-text-primary">{t("title")}</h1>
+          <p className="text-sm text-text-muted">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -89,9 +86,9 @@ export default function ReportsPage() {
                       <Icon className="h-5 w-5 text-primary-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">{report.title}</CardTitle>
+                      <CardTitle className="text-base">{t(report.titleKey)}</CardTitle>
                       <CardDescription className="text-xs">
-                        {report.description}
+                        {t(report.descKey)}
                       </CardDescription>
                     </div>
                   </div>
@@ -105,12 +102,12 @@ export default function ReportsPage() {
       {/* Quick Stats */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quick Overview</CardTitle>
+          <CardTitle className="text-base">{t("quickOverview")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-text-muted">
             <BarChart3 className="h-12 w-12 mx-auto mb-4 text-text-muted" />
-            <p>Select a report above to view detailed analytics</p>
+            <p>{t("selectReportAbove")}</p>
           </div>
         </CardContent>
       </Card>
