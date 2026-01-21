@@ -6,14 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
-import { useInvoices } from "@/lib/api";
 import { usePermission } from "@/lib/auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, SortableHeader } from "@/components/ui/data-table";
-import { Spinner } from "@/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -21,12 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { mockInvoices } from "@/lib/mock/invoices";
 import type { Invoice, InvoiceStatus } from "@/types";
 
 const statusVariants: Record<InvoiceStatus, "default" | "warning" | "success" | "error"> = {
   DRAFT: "default",
   ISSUED: "warning",
+  PARTIAL: "warning",
   PAID: "success",
+  OVERDUE: "error",
   CANCELLED: "error",
 };
 
@@ -46,17 +47,37 @@ export default function InvoicesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: invoices = [], isLoading } = useInvoices({
-    search: debouncedSearch || undefined,
-    status: status !== "all" ? status : undefined,
-  });
+  // Use mock data with filtering
+  const invoices = React.useMemo(() => {
+    let filtered = [...mockInvoices];
+
+    // Filter by status
+    if (status !== "all") {
+      filtered = filtered.filter((inv) => inv.status === status);
+    }
+
+    // Filter by search
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      filtered = filtered.filter(
+        (inv) =>
+          inv.invoiceNumber.toLowerCase().includes(searchLower) ||
+          inv.buyer.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Sort by date descending
+    return filtered.sort((a, b) => b.invoiceDate.localeCompare(a.invoiceDate));
+  }, [status, debouncedSearch]);
 
   // Status options with translations
   const statusOptions = [
     { value: "all", label: tCommon("allStatus") },
     { value: "DRAFT", label: t("status.draft") },
     { value: "ISSUED", label: t("status.issued") },
+    { value: "PARTIAL", label: t("status.partial") },
     { value: "PAID", label: t("status.paid") },
+    { value: "OVERDUE", label: t("status.overdue") },
     { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
@@ -69,14 +90,14 @@ export default function InvoicesPage() {
       ),
     },
     {
-      accessorKey: "party",
+      accessorKey: "buyer",
       header: tCommon("name"),
-      cell: ({ row }) => row.original.party?.name || "—",
+      cell: ({ row }) => row.original.buyer?.name || row.original.party?.name || "—",
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "invoiceDate",
       header: ({ column }) => <SortableHeader column={column}>{tCommon("date")}</SortableHeader>,
-      cell: ({ row }) => formatDate(row.original.createdAt),
+      cell: ({ row }) => formatDate(row.original.invoiceDate || row.original.createdAt),
     },
     {
       accessorKey: "totalAmount",
@@ -155,25 +176,19 @@ export default function InvoicesPage() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={invoices}
-          onRowClick={(row) => router.push(`/invoices/${row.id}`)}
-          emptyState={{
-            title: t("noInvoices"),
-            description: search || status !== "all"
-              ? tCommon("tryAdjustingFilters")
-              : t("noInvoicesDesc"),
-            actionLabel: canEdit ? t("newInvoice") : undefined,
-            onAction: canEdit ? () => router.push("/invoices/new") : undefined,
-          }}
-        />
-      )}
+      <DataTable
+        columns={columns}
+        data={invoices}
+        onRowClick={(row) => router.push(`/invoices/${row.id}`)}
+        emptyState={{
+          title: t("noInvoices"),
+          description: search || status !== "all"
+            ? tCommon("tryAdjustingFilters")
+            : t("noInvoicesDesc"),
+          actionLabel: canEdit ? t("newInvoice") : undefined,
+          onAction: canEdit ? () => router.push("/invoices/new") : undefined,
+        }}
+      />
     </div>
   );
 }

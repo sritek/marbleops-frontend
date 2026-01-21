@@ -36,6 +36,11 @@ const config: Config = {
         ],
       },
 
+      // Custom breakpoints for better mobile responsiveness
+      screens: {
+        'xs': '480px', // Extra small devices
+      },
+
       // Max width for content containers
       maxWidth: {
         content: "1200px",

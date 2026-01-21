@@ -35,16 +35,31 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
   // Close on path change
   React.useEffect(() => {
-    onClose();
-  }, [pathname, onClose]);
+    if (isOpen) {
+      onClose();
+    }
+  }, [pathname]);
 
-  if (!isOpen) return null;
+  // Prevent body scroll when menu is open
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+        className={cn(
+          "fixed inset-0 z-50 bg-black/50 lg:hidden transition-opacity duration-200",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -56,6 +71,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           "transform transition-transform duration-200 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        aria-hidden={!isOpen}
       >
         {/* Header */}
         <div className="flex h-14 items-center justify-between px-4 border-b border-border-subtle">
@@ -82,6 +98,27 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
               const translationKey = item.labelKey.replace("nav.", "");
+
+              // Coming soon items are disabled
+              if (item.comingSoon) {
+                return (
+                  <li key={item.href}>
+                    <div
+                      className={cn(
+                        "relative flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium",
+                        "text-text-muted opacity-60 cursor-not-allowed select-none"
+                      )}
+                    >
+                      <div className="absolute inset-0 rounded-lg bg-bg-app/50 backdrop-blur-[1px]" />
+                      <Icon className="h-5 w-5 shrink-0 relative z-10" aria-hidden="true" />
+                      <span className="relative z-10">{t(translationKey)}</span>
+                      <span className="relative z-10 ml-auto text-[10px] font-medium text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded">
+                        {t("comingSoon")}
+                      </span>
+                    </div>
+                  </li>
+                );
+              }
 
               return (
                 <li key={item.href}>

@@ -61,13 +61,13 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     }
 
     return (
-      <Card ref={ref} className={cn("p-4 md:p-6", className)} {...props}>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-text-muted">{title}</p>
-            <p className="text-2xl font-semibold text-text-primary">{value}</p>
+      <Card ref={ref} className={cn("p-3 sm:p-4 md:p-6", className)} {...props}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0 flex-1">
+            <p className="text-xs sm:text-sm text-text-muted truncate">{title}</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-text-primary truncate">{value}</p>
             {(description || trendValue) && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {trend && trendValue && (
                   <span
                     className={cn(
@@ -83,15 +83,15 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
                   </span>
                 )}
                 {description && (
-                  <span className="text-sm text-text-muted">{description}</span>
+                  <span className="text-xs sm:text-sm text-text-muted truncate">{description}</span>
                 )}
               </div>
             )}
           </div>
 
           {Icon && (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-app">
-              <Icon className="h-5 w-5 text-text-muted" />
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-bg-app shrink-0">
+              <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-text-muted" />
             </div>
           )}
         </div>

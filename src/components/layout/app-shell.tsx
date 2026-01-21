@@ -33,7 +33,7 @@ export function AppShell({ children }: AppShellProps) {
         <Header onMenuClick={() => setMobileNavOpen(true)} />
 
         {/* Page content */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="mx-auto max-w-content">{children}</div>
         </main>
       </div>

@@ -1,3 +1,14 @@
 export { InventoryCard } from "./inventory-card";
 export { OfflineIndicator } from "./offline-indicator";
 export { LanguageSwitcher } from "./language-switcher";
+export { DateRangeFilter, useDateRangeFilter, getDateRangeFromPreset } from "./date-range-filter";
+export type { DateRange, DateRangePreset } from "./date-range-filter";
+export { MonthlyChart } from "./monthly-chart";
+export type { MonthlyChartData, StackedChartData } from "./monthly-chart";
+export { StockPieChart } from "./stock-pie-chart";
+export type { StockCategoryData } from "./stock-pie-chart";
+export { StockDetailCard } from "./stock-detail-card";
+export type { StockMetric, StockParty } from "./stock-detail-card";
+export { LowStockTable } from "./low-stock-table";
+export type { LowStockItem } from "./low-stock-table";
+export { PhotoUpload, clearPhotoStorage } from "./photo-upload";

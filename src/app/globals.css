@@ -53,10 +53,34 @@
      1.5 Status Colors (Semantic Only)
      ⚠️ Never rely on color alone - always add text or icon
      --------------------------------------------------------------------------- */
-  --success: #16a34a; /* Paid, Present, Completed, Active */
-  --warning: #d97706; /* Pending, Due soon, Attention needed */
-  --error: #dc2626; /* Failed, Absent, Overdue, Delete actions */
+  --success: #16a34a; /* Paid, Shipped, Completed, Active */
+  --success-bg: #dcfce7; /* Light green background for success badges */
+  --warning: #d97706; /* Partial, Due soon, Attention needed */
+  --warning-bg: #fef3c7; /* Light amber background for warning badges */
+  --error: #dc2626; /* Failed, Pending, Overdue, Delete actions */
+  --error-bg: #fee2e2; /* Light red background for error badges */
   --info: #0284c7; /* System info, neutral highlights */
+  --info-bg: #e0f2fe; /* Light blue background for info badges */
+
+  /* ---------------------------------------------------------------------------
+     1.5.1 Chart Colors (Blue shades for charts)
+     --------------------------------------------------------------------------- */
+  --chart-blue-primary: #2563eb; /* Primary blue for sales charts */
+  --chart-blue-secondary: #3b82f6; /* Secondary blue for purchase charts */
+  
+  /* Stacked bar chart colors for sales/purchase with returns */
+  --chart-sales: #2563eb; /* Primary blue for sales */
+  --chart-sales-return: #93c5fd; /* Lighter blue for sales return */
+  --chart-purchase: #3b82f6; /* Different blue for purchase */
+  --chart-purchase-return: #bfdbfe; /* Lighter shade for purchase return */
+  
+  /* Pie chart color palette (6+ colors for categories) */
+  --chart-color-1: #2563eb; /* Blue */
+  --chart-color-2: #7c3aed; /* Purple */
+  --chart-color-3: #db2777; /* Pink */
+  --chart-color-4: #ea580c; /* Orange */
+  --chart-color-5: #16a34a; /* Green */
+  --chart-color-6: #0891b2; /* Cyan */
 
   /* ---------------------------------------------------------------------------
      1.6 Focus Ring
@@ -137,9 +161,13 @@
 
   /* Status colors */
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
   --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
   --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
 
   /* Focus ring */
   --color-ring: var(--ring);
@@ -157,8 +185,16 @@
   box-sizing: border-box;
 }
 
+/* HTML - ensure full height and safe area support */
+html {
+  height: 100%;
+  /* Enable safe area insets for iOS devices */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 /* Body defaults */
 body {
+  min-height: 100%;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -167,6 +203,8 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent overscroll bounce on iOS */
+  overscroll-behavior-y: none;
 }
 
 /* =============================================================================
@@ -264,41 +302,66 @@ body {
 
 .dark {
   /* ---------------------------------------------------------------------------
-     8.1 Background Colors (Dark)
+     8.1 Background Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --bg-app: #0f172a; /* slate-900 - Main app background */
-  --bg-surface: #1e293b; /* slate-800 - Cards, panels, modals */
+  --bg-app: #000000; /* Pure black - Main app background */
+  --bg-surface: #1a1a1a; /* Dark gray - Cards, panels, modals */
 
   /* ---------------------------------------------------------------------------
-     8.2 Text Colors (Dark)
+     8.2 Text Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --text-primary: #f1f5f9; /* slate-100 - Main text */
-  --text-muted: #94a3b8; /* slate-400 - Secondary text */
+  --text-primary: #ffffff; /* Pure white - Main text */
+  --text-muted: #b3b3b3; /* Light gray - Secondary text */
 
   /* ---------------------------------------------------------------------------
-     8.3 Border Colors (Dark)
+     8.3 Border Colors (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --border-subtle: #334155; /* slate-700 - Dividers, borders */
+  --border-subtle: #404040; /* Medium gray - Dividers, borders */
 
   /* ---------------------------------------------------------------------------
-     8.4 Primary Brand Color (Dark)
+     8.4 Primary Brand Color (Dark) - Black & White Theme
      --------------------------------------------------------------------------- */
-  --primary-100: #1e3a5f; /* Darker primary background */
-  --primary-600: #3b82f6; /* blue-500 - Slightly brighter for dark mode */
-  --primary-700: #2563eb; /* blue-600 - Hover state */
+  --primary-100: #2a2a2a; /* Dark gray - Subtle background, selected states */
+  --primary-600: #404040; /* Medium gray - Primary buttons (white text on gray bg, visible against black) */
+  --primary-700: #ffffff; /* White - Active sidebar items and hover state for primary elements */
 
   /* ---------------------------------------------------------------------------
-     8.5 Status Colors (Dark) - Slightly adjusted for better contrast
+     8.5 Status Colors (Dark) - Black & White Theme
+     Using different shades of gray to differentiate status
      --------------------------------------------------------------------------- */
-  --success: #22c55e; /* green-500 - Brighter for dark backgrounds */
-  --warning: #f59e0b; /* amber-500 - Brighter for dark backgrounds */
-  --error: #ef4444; /* red-500 - Brighter for dark backgrounds */
-  --info: #0ea5e9; /* sky-500 - Brighter for dark backgrounds */
+  --success: #4ade80; /* Green - Paid, Shipped, Completed, Active */
+  --success-bg: #14532d; /* Dark green background */
+  --warning: #fbbf24; /* Amber - Partial, Due soon, Attention needed */
+  --warning-bg: #451a03; /* Dark amber background */
+  --error: #f87171; /* Red - Failed, Pending, Overdue, Delete actions */
+  --error-bg: #450a0a; /* Dark red background */
+  --info: #38bdf8; /* Sky blue - System info, neutral highlights */
+  --info-bg: #0c4a6e; /* Dark blue background */
 
   /* ---------------------------------------------------------------------------
-     8.6 Focus Ring (Dark)
+     8.5.1 Chart Colors (Dark) - Blue shades visible on dark background
      --------------------------------------------------------------------------- */
-  --ring: #3b82f6; /* blue-500 - Matches dark primary */
+  --chart-blue-primary: #60a5fa; /* Lighter blue for sales charts in dark mode */
+  --chart-blue-secondary: #93c5fd; /* Even lighter blue for purchase charts in dark mode */
+  
+  /* Stacked bar chart colors for sales/purchase with returns (dark mode) */
+  --chart-sales: #60a5fa; /* Lighter blue for sales */
+  --chart-sales-return: #3b82f6; /* Darker blue for sales return (visible on dark bg) */
+  --chart-purchase: #93c5fd; /* Light blue for purchase */
+  --chart-purchase-return: #60a5fa; /* Medium blue for purchase return */
+  
+  /* Pie chart color palette (dark mode - brighter for visibility) */
+  --chart-color-1: #60a5fa; /* Blue */
+  --chart-color-2: #a78bfa; /* Purple */
+  --chart-color-3: #f472b6; /* Pink */
+  --chart-color-4: #fb923c; /* Orange */
+  --chart-color-5: #4ade80; /* Green */
+  --chart-color-6: #22d3ee; /* Cyan */
+
+  /* ---------------------------------------------------------------------------
+     8.6 Focus Ring (Dark) - Black & White Theme
+     --------------------------------------------------------------------------- */
+  --ring: #ffffff; /* White - Focus ring color */
 }
 
 /* =============================================================================
@@ -466,3 +529,4 @@ body {
   font-size: 12px;
   font-weight: 500;
 }
+

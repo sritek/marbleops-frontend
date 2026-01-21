@@ -79,6 +79,27 @@ function NavItemLink({ item, pathname }: { item: NavItem; pathname: string }) {
   // Extract the key from "nav.dashboard" -> "dashboard"
   const translationKey = item.labelKey.replace("nav.", "");
 
+  // Coming soon items are disabled
+  if (item.comingSoon) {
+    return (
+      <li>
+        <div
+          className={cn(
+            "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+            "text-text-muted opacity-60 cursor-not-allowed select-none"
+          )}
+        >
+          <div className="absolute inset-0 rounded-lg bg-bg-app/50 backdrop-blur-[1px]" />
+          <Icon className="h-5 w-5 shrink-0 relative z-10" aria-hidden="true" />
+          <span className="relative z-10">{t(translationKey)}</span>
+          <span className="relative z-10 ml-auto text-[10px] font-medium text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded">
+            {t("comingSoon")}
+          </span>
+        </div>
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link

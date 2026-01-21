@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, Sun, Moon, LogOut, User, Settings, Store } from "lucide-react";
+import { Menu, Sun, Moon, LogOut, User, Settings, Store, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -30,12 +30,12 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border-subtle bg-bg-surface px-4 lg:px-6">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-2 sm:gap-4 border-b border-border-subtle bg-bg-surface px-3 sm:px-4 lg:px-6">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
+        className="lg:hidden shrink-0"
         onClick={onMenuClick}
         aria-label="Open menu"
       >
@@ -43,11 +43,11 @@ export function Header({ onMenuClick }: HeaderProps) {
       </Button>
 
       {/* Mobile logo */}
-      <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
+      <Link href="/dashboard" className="flex items-center gap-2 lg:hidden min-w-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 shrink-0">
           <span className="text-sm font-bold text-white">M</span>
         </div>
-        <span className="text-sm font-semibold text-text-primary">
+        <span className="text-sm font-semibold text-text-primary hidden xs:inline truncate">
           {appMeta.name}
         </span>
       </Link>
@@ -55,8 +55,22 @@ export function Header({ onMenuClick }: HeaderProps) {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Language switcher */}
-      <LanguageSwitcher />
+      {/* Language switcher - hidden on very small screens */}
+      <div className="hidden sm:block">
+        <LanguageSwitcher />
+      </div>
+
+      {/* Notification icon */}
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Notifications"
+        className="relative"
+      >
+        <Bell className="h-5 w-5" />
+        {/* Notification badge - shows when there are unread notifications */}
+        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-error" />
+      </Button>
 
       {/* Theme toggle */}
       <Button

@@ -12,6 +12,7 @@ import type {
   Store,
   User,
   DashboardStats,
+  DashboardStatsParams,
   CreateInventoryInput,
   CreatePartyInput,
   CreateOrderInput,
@@ -30,7 +31,7 @@ import type {
 export const queryKeys = {
   // Dashboard
   dashboard: ["dashboard"] as const,
-  dashboardStats: ["dashboard", "stats"] as const,
+  dashboardStats: (params?: DashboardStatsParams) => ["dashboard", "stats", params] as const,
 
   // Stores
   stores: ["stores"] as const,
@@ -76,10 +77,17 @@ export const queryKeys = {
 // DASHBOARD HOOKS
 // =============================================================================
 
-export function useDashboardStats() {
+export function useDashboardStats(params?: DashboardStatsParams) {
   return useQuery({
-    queryKey: queryKeys.dashboardStats,
-    queryFn: () => api.get<DashboardStats>("/reports/dashboard"),
+    queryKey: queryKeys.dashboardStats(params),
+    queryFn: () => {
+      const searchParams = new URLSearchParams();
+      if (params?.startDate) searchParams.set("startDate", params.startDate);
+      if (params?.endDate) searchParams.set("endDate", params.endDate);
+      
+      const queryString = searchParams.toString();
+      return api.get<DashboardStats>(`/reports/dashboard${queryString ? `?${queryString}` : ""}`);
+    },
     staleTime: 60 * 1000, // 1 minute
   });
 }

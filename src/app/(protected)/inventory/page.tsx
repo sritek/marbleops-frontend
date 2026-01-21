@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Plus, Search } from "lucide-react";
+import { Plus, Filter, X, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useInventoryList } from "@/lib/api";
 import { usePermission } from "@/lib/auth";
@@ -42,25 +42,60 @@ export default function InventoryPage() {
   // View mode state
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
 
-  // Filter states
-  const [search, setSearch] = React.useState(searchParams.get("search") || "");
-  const [status, setStatus] = React.useState(searchParams.get("status") || "all");
-  const [materialType, setMaterialType] = React.useState(
+  // Pending filter states (not yet applied)
+  const [pendingSearch, setPendingSearch] = React.useState(searchParams.get("search") || "");
+  const [pendingStatus, setPendingStatus] = React.useState(searchParams.get("status") || "all");
+  const [pendingMaterialType, setPendingMaterialType] = React.useState(
     searchParams.get("materialType") || "all"
   );
+  const [pendingColor, setPendingColor] = React.useState(searchParams.get("color") || "all");
 
-  // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = React.useState(search);
-  React.useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+  // Applied filter states (used for API call)
+  const [appliedSearch, setAppliedSearch] = React.useState(searchParams.get("search") || "");
+  const [appliedStatus, setAppliedStatus] = React.useState(searchParams.get("status") || "all");
+  const [appliedMaterialType, setAppliedMaterialType] = React.useState(
+    searchParams.get("materialType") || "all"
+  );
+  const [appliedColor, setAppliedColor] = React.useState(searchParams.get("color") || "all");
 
-  // Fetch inventory
+  // Check if there are pending filter changes (excludes search - search has its own button)
+  const hasFilterChanges = 
+    pendingStatus !== appliedStatus ||
+    pendingMaterialType !== appliedMaterialType ||
+    pendingColor !== appliedColor;
+
+  // Check if any filters are active
+  const hasActiveFilters = 
+    appliedSearch !== "" ||
+    appliedStatus !== "all" ||
+    appliedMaterialType !== "all" ||
+    appliedColor !== "all";
+
+  // Apply filters (only dropdown filters, not search)
+  const applyFilters = () => {
+    setAppliedStatus(pendingStatus);
+    setAppliedMaterialType(pendingMaterialType);
+    setAppliedColor(pendingColor);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setPendingSearch("");
+    setPendingStatus("all");
+    setPendingMaterialType("all");
+    setPendingColor("all");
+    setAppliedSearch("");
+    setAppliedStatus("all");
+    setAppliedMaterialType("all");
+    setAppliedColor("all");
+  };
+
+  // Fetch inventory with applied filters
   const { data: inventory = [], isLoading } = useInventoryList({
-    search: debouncedSearch || undefined,
-    status: status !== "all" ? status : undefined,
-    materialType: materialType !== "all" ? materialType : undefined,
+    search: appliedSearch || undefined,
+    status: appliedStatus !== "all" ? appliedStatus : undefined,
+    materialType: appliedMaterialType !== "all" ? appliedMaterialType : undefined,
+    color: appliedColor !== "all" ? appliedColor : undefined,
   });
 
   // Status options with translations
@@ -77,6 +112,22 @@ export default function InventoryPage() {
     { value: "MARBLE", label: t("material.marble") },
     { value: "GRANITE", label: t("material.granite") },
     { value: "TILE", label: t("material.tile") },
+  ];
+
+  // Color options with translations
+  const colorOptions = [
+    { value: "all", label: t("allColors") },
+    { value: "WHITE", label: t("color.white") },
+    { value: "BLACK", label: t("color.black") },
+    { value: "GREY", label: t("color.grey") },
+    { value: "BEIGE", label: t("color.beige") },
+    { value: "BROWN", label: t("color.brown") },
+    { value: "GREEN", label: t("color.green") },
+    { value: "BLUE", label: t("color.blue") },
+    { value: "PINK", label: t("color.pink") },
+    { value: "RED", label: t("color.red") },
+    { value: "YELLOW", label: t("color.yellow") },
+    { value: "MULTI", label: t("color.multi") },
   ];
 
   // Table columns
@@ -99,6 +150,11 @@ export default function InventoryPage() {
       accessorKey: "form",
       header: t("form"),
       cell: ({ row }) => row.original.form || "—",
+    },
+    {
+      accessorKey: "color",
+      header: t("color"),
+      cell: ({ row }) => row.original.color || "—",
     },
     {
       accessorKey: "dimensions",
@@ -156,48 +212,153 @@ export default function InventoryPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+      <div className="space-y-4">
+        {/* Desktop: All filters in one row | Mobile: Stacked layout */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:flex-wrap">
+          {/* Search bar */}
+          <div className="relative flex items-center w-full lg:w-auto lg:flex-1 lg:max-w-sm">
+            <Search className="absolute left-3 h-4 w-4 text-text-muted pointer-events-none" />
+            <Input
+              placeholder={t("searchPlaceholder")}
+              value={pendingSearch}
+              onChange={(e) => setPendingSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setAppliedSearch(pendingSearch);
+                }
+              }}
+              className="pl-10 pr-24"
+            />
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              className="absolute right-1 h-7"
+              onClick={() => setAppliedSearch(pendingSearch)}
+            >
+              {tCommon("search")}
+            </Button>
+          </div>
+
+          {/* Dropdown filters - 2 columns on mobile, inline on desktop */}
+          <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-row lg:items-center lg:gap-2">
+            {/* Status filter */}
+            <Select value={pendingStatus} onValueChange={setPendingStatus}>
+              <SelectTrigger className="w-full lg:w-[140px]">
+                <SelectValue placeholder={tCommon("status")} />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Material filter */}
+            <Select value={pendingMaterialType} onValueChange={setPendingMaterialType}>
+              <SelectTrigger className="w-full lg:w-[140px]">
+                <SelectValue placeholder={t("materialType")} />
+              </SelectTrigger>
+              <SelectContent>
+                {materialOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Color filter */}
+            <Select value={pendingColor} onValueChange={setPendingColor}>
+              <SelectTrigger className="w-full lg:w-[140px]">
+                <SelectValue placeholder={t("color")} />
+              </SelectTrigger>
+              <SelectContent>
+                {colorOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Apply filter button */}
+            <Button 
+              onClick={applyFilters}
+              disabled={!hasFilterChanges}
+              size="sm"
+              className="w-full lg:w-auto"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {t("applyFilters")}
+            </Button>
+          </div>
+
+          {/* Clear filters button - inline on desktop */}
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              onClick={clearFilters}
+              size="sm"
+              className="hidden lg:flex text-text-muted"
+            >
+              <X className="h-4 w-4 mr-1" />
+              {t("clearFilters")}
+            </Button>
+          )}
+
+          {/* View toggle - pushed to right on desktop */}
+          <div className="hidden lg:block lg:ml-auto">
+            <ViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
         </div>
 
-        {/* Status filter */}
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={tCommon("status")} />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Mobile only: Clear filters and View toggle row */}
+        <div className="flex items-center justify-between lg:hidden">
+          {hasActiveFilters ? (
+            <Button 
+              variant="ghost" 
+              onClick={clearFilters}
+              size="sm"
+              className="text-text-muted"
+            >
+              <X className="h-4 w-4 mr-1" />
+              {t("clearFilters")}
+            </Button>
+          ) : (
+            <div />
+          )}
+          <ViewToggle value={viewMode} onChange={setViewMode} />
+        </div>
 
-        {/* Material filter */}
-        <Select value={materialType} onValueChange={setMaterialType}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t("materialType")} />
-          </SelectTrigger>
-          <SelectContent>
-            {materialOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* View toggle */}
-        <ViewToggle value={viewMode} onChange={setViewMode} />
+        {/* Active filters indicator */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
+            <span>{t("activeFilters")}:</span>
+            {appliedSearch && (
+              <Badge variant="default" className="font-normal">
+                {t("searchLabel")}: {appliedSearch}
+              </Badge>
+            )}
+            {appliedStatus !== "all" && (
+              <Badge variant="default" className="font-normal">
+                {t(`status.${appliedStatus.toLowerCase()}`)}
+              </Badge>
+            )}
+            {appliedMaterialType !== "all" && (
+              <Badge variant="default" className="font-normal">
+                {t(`material.${appliedMaterialType.toLowerCase()}`)}
+              </Badge>
+            )}
+            {appliedColor !== "all" && (
+              <Badge variant="default" className="font-normal">
+                {t(`color.${appliedColor.toLowerCase()}`)}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -209,7 +370,7 @@ export default function InventoryPage() {
         <EmptyState
           title={t("noItems")}
           description={
-            search || status !== "all" || materialType !== "all"
+            hasActiveFilters
               ? tCommon("tryAdjustingFilters")
               : t("noItemsDesc")
           }

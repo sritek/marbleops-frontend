@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  PackageX,
   ShoppingCart,
   FileText,
   Wallet,
@@ -27,6 +28,8 @@ export interface NavItem {
   permission: Permission;
   /** Show badge with count (optional) */
   badgeKey?: string;
+  /** Mark as coming soon - disabled with overlay */
+  comingSoon?: boolean;
 }
 
 /**
@@ -75,6 +78,13 @@ export const navigationItems: NavItem[] = [
     labelKey: "nav.reports",
     icon: BarChart3,
     permission: "REPORTS_VIEW",
+  },
+  {
+    href: "/dead-stock",
+    labelKey: "nav.deadStock",
+    icon: PackageX,
+    permission: "INVENTORY_VIEW",
+    comingSoon: true,
   },
 ];
 

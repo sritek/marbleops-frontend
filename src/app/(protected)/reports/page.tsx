@@ -9,6 +9,7 @@ import {
   Users,
   FileText,
   Wallet,
+  ShoppingCart,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePermission } from "@/lib/auth";
@@ -54,6 +55,13 @@ export default function ReportsPage() {
       descKey: "paymentReportDesc",
       icon: Wallet,
       href: "/reports/payments",
+    },
+    {
+      id: "orders",
+      titleKey: "orderReport",
+      descKey: "orderReportDesc",
+      icon: ShoppingCart,
+      href: "/reports/orders",
     },
   ];
 
