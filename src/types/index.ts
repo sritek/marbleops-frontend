@@ -37,6 +37,8 @@ export type Permission =
   | "INVOICE_EDIT"
   | "PAYMENT_VIEW"
   | "PAYMENT_RECORD"
+  | "EXPENSE_VIEW"
+  | "EXPENSE_EDIT"
   | "REPORTS_VIEW"
   | "SETTINGS_MANAGE";
 
@@ -66,6 +68,25 @@ export interface Store {
   address: string | null;
   phone: string | null;
   isActive: boolean;
+  // Seller details for GST compliance
+  legalName?: string | null;
+  tradeName?: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  stateCode?: string | null;
+  pincode?: string | null;
+  email?: string | null;
+  // Bank details
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfscCode?: string | null;
+  bankName?: string | null;
+  bankBranch?: string | null;
+  bankUpiId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,18 +99,6 @@ export type MaterialType = "MARBLE" | "GRANITE" | "TILE";
 export type StoneForm = "SLAB" | "BLOCK" | "TILE";
 export type StoneQuality = "NORMAL" | "CRACKED" | "DAMAGED";
 export type InventoryStatus = "AVAILABLE" | "RESERVED" | "SOLD";
-export type StoneColor = 
-  | "WHITE" 
-  | "BLACK" 
-  | "GREY" 
-  | "BEIGE" 
-  | "BROWN" 
-  | "GREEN" 
-  | "BLUE" 
-  | "PINK" 
-  | "RED" 
-  | "YELLOW" 
-  | "MULTI";
 
 export interface Inventory {
   id: string;
@@ -110,6 +119,7 @@ export interface Inventory {
   form: StoneForm | null;
   finish: string | null;
   supplier: string | null;
+  color: string | null;
   lotNumber: string | null;
   // Dimensions
   length: number | null;
@@ -123,8 +133,6 @@ export interface Inventory {
   // Quality & Status
   quality: StoneQuality | null;
   status: InventoryStatus;
-  // Color
-  color: StoneColor | null;
   // Photos (to be added)
   photos?: string[];
   // Timestamps
@@ -171,294 +179,30 @@ export interface Party {
 }
 
 // =============================================================================
-// ORDER TYPES (Enhanced for GST-Compliant Order Management)
+// ORDER TYPES
 // =============================================================================
 
-// Order status with full lifecycle support
-export type OrderStatus = 
-  | "DRAFT"              // Created but not confirmed
-  | "CONFIRMED"          // Customer confirmed, ready for processing
-  | "PROCESSING"         // Being picked/packed
-  | "PARTIALLY_DELIVERED"// Some items delivered
-  | "DELIVERED"          // All items delivered
-  | "CLOSED"             // Fully delivered, invoiced, paid
-  | "CANCELLED"          // Order cancelled
-  | "ON_HOLD";           // Temporarily paused
+export type OrderStatus = "DRAFT" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
 
-// Order types for different business scenarios
-export type OrderType = 
-  | "STANDARD"           // Regular order
-  | "COUNTER_SALE"       // Walk-in B2C sale
-  | "PROJECT"            // Large project order
-  | "SAMPLE"             // Sample request
-  | "RETURN";            // Return order
-
-// Delivery and payment status
-export type DeliveryStatus = "PENDING" | "PARTIAL" | "COMPLETE";
-export type PaymentStatus = "UNPAID" | "PARTIAL" | "PAID" | "OVERPAID";
-export type TransportMode = "OWN" | "COURIER" | "CUSTOMER_PICKUP" | "THIRD_PARTY";
-export type Priority = "NORMAL" | "URGENT" | "LOW";
-export type LineItemDeliveryStatus = "PENDING" | "PARTIAL" | "COMPLETE" | "CANCELLED";
-
-// Customer snapshot frozen at order time for audit
-export interface CustomerSnapshot {
-  name: string;
-  gstin?: string;
-  pan?: string;
-  phone: string;
-  email?: string;
-  customerType: CustomerType;
-  creditLimit?: number;
-  creditDays?: number;
-}
-
-// Product snapshot frozen at order time
-export interface ProductSnapshot {
-  name: string;
-  sku?: string;
-  hsnCode: string;
-  category: string;
-  subcategory?: string;
-  color?: string;
-  finish?: string;
-  grade?: string;
-}
-
-// Note: ItemDimensions is defined in Invoice Types section below
-
-// Shipping address with contact person
-export interface ShippingAddress extends GSTAddress {
-  contactPerson?: string;
-  contactPhone?: string;
-}
-
-// Enhanced Order interface
 export interface Order {
-  // System identifiers
   id: string;
-  tenantId: string;
   storeId: string;
-  orderNumber: string;              // ORD-2526-0001 format
-
-  // Order metadata
-  orderType: OrderType;
-  orderDate: string;                // ISO date
-  expectedDeliveryDate?: string;
-  validUntil?: string;              // Quote validity for drafts
-  priority: Priority;
+  partyId: string;
+  partyName?: string; // From backend OrderResponse
+  orderNumber: string;
   status: OrderStatus;
-
-  // Customer details (denormalized)
-  customerId: string;
-  customerSnapshot: CustomerSnapshot;
-
-  // Addresses
-  billingAddress: GSTAddress;
-  shippingAddress: ShippingAddress;
-  placeOfSupply: string;            // 2-digit GST state code
-
-  // Financial summary
-  subtotal: number;
-  discountAmount: number;
-  discountPercent?: number;
-  taxableAmount: number;
-  cgstAmount: number;
-  sgstAmount: number;
-  igstAmount: number;
-  totalTax: number;
-  roundOff: number;
-  grandTotal: number;
-
-  // Payment tracking
-  paymentStatus: PaymentStatus;
-  amountPaid: number;
-  amountDue: number;
-  advanceRequired?: number;
-
-  // Delivery tracking
-  deliveryStatus: DeliveryStatus;
-  totalQuantityOrdered: number;
-  totalQuantityDelivered: number;
-  totalQuantityRemaining: number;
-
-  // Linked documents
-  quotationId?: string;
-  linkedInvoiceIds: string[];
-  linkedDeliveryIds: string[];
-  linkedPaymentIds: string[];
-
-  // Notes
-  internalNotes?: string;
-  customerNotes?: string;
-  termsAndConditions?: string;
-
-  // Audit trail
+  totalAmount: number;
+  notes: string | null;
+  items: OrderItem[];
   createdBy: string;
   createdAt: string;
-  updatedBy: string;
   updatedAt: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  cancelledBy?: string;
-  cancelledAt?: string;
-  cancellationReason?: string;
-
-  // Relations
+  confirmedAt?: string | null;
+  deliveredAt?: string | null;
+  // Relations (optional, may be populated by backend)
   party?: Party;
-  items?: OrderLineItem[];
-  deliveries?: DeliveryChallan[];
-  payments?: OrderPayment[];
 }
 
-// Enhanced Order Line Item
-export interface OrderLineItem {
-  id: string;
-  orderId: string;
-  lineNumber: number;
-
-  // Product reference
-  inventoryId: string;
-  productSnapshot: ProductSnapshot;
-
-  // Dimensions (marble-specific)
-  dimensions?: ItemDimensions;
-  areaSqft?: number;                // Calculated area
-
-  // Quantity & pricing
-  unit: UnitOfMeasure;
-  quantityOrdered: number;
-  quantityDelivered: number;
-  quantityRemaining: number;
-  quantityCancelled: number;
-
-  unitPrice: number;
-  discountPercent?: number;
-  discountAmount: number;
-  taxableValue: number;
-
-  // Tax breakdown
-  gstRate: number;                  // 5, 12, 18, 28
-  cgstRate: number;
-  cgstAmount: number;
-  sgstRate: number;
-  sgstAmount: number;
-  igstRate: number;
-  igstAmount: number;
-
-  lineTotal: number;                // Including tax
-
-  // Delivery tracking
-  deliveryStatus: LineItemDeliveryStatus;
-  reservedQuantity?: number;
-
-  // Notes
-  lineNotes?: string;
-}
-
-// Delivery Challan
-export interface DeliveryChallan {
-  id: string;
-  challanNumber: string;            // DC-2526-0001
-  orderId: string;
-  orderNumber: string;
-
-  challanDate: string;
-  vehicleNumber?: string;
-  driverName?: string;
-  driverPhone?: string;
-  transportMode: TransportMode;
-  transporterName?: string;
-  lrNumber?: string;                // Lorry Receipt
-
-  deliveryAddress: ShippingAddress;
-  items: DeliveryChallanItem[];
-
-  status: "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "PARTIAL_RETURN" | "FULL_RETURN";
-  deliveredAt?: string;
-  receivedBy?: string;
-
-  // E-Way Bill
-  ewayBillNumber?: string;
-  ewayBillDate?: string;
-  ewayBillValidUntil?: string;
-
-  // Proof of delivery
-  podImage?: string;
-  podSignature?: string;
-
-  // Audit
-  createdBy: string;
-  createdAt: string;
-}
-
-export interface DeliveryChallanItem {
-  orderLineId: string;
-  productName: string;
-  hsnCode: string;
-  quantityDispatched: number;
-  quantityDelivered: number;
-  quantityReturned?: number;
-  returnReason?: string;
-  unit: UnitOfMeasure;
-}
-
-// Order Payment Record
-export interface OrderPayment {
-  id: string;
-  receiptNumber: string;            // RCP-2526-0001
-  orderId: string;
-  orderNumber: string;
-
-  paymentDate: string;
-  amount: number;
-  paymentMode: "CASH" | "UPI" | "BANK_TRANSFER" | "CHEQUE" | "CARD" | "CREDIT";
-
-  // Mode-specific details
-  referenceNumber?: string;         // UTR/Cheque No/Card Auth
-  bankName?: string;
-  chequeDate?: string;
-  chequeStatus?: "PENDING" | "CLEARED" | "BOUNCED";
-
-  // Allocation
-  allocationType: "ADVANCE" | "AGAINST_INVOICE" | "AGAINST_ORDER";
-  invoiceId?: string;
-
-  notes?: string;
-
-  // Audit
-  receivedBy: string;
-  createdAt: string;
-}
-
-// Order audit log entry
-export interface OrderAuditLog {
-  id: string;
-  orderId: string;
-  timestamp: string;
-  action: string;
-  field?: string;
-  oldValue?: string;
-  newValue?: string;
-  userId: string;
-  userName: string;
-  notes?: string;
-}
-
-// Order statistics for dashboard/reports
-export interface OrderStats {
-  totalOrders: number;
-  totalValue: number;
-  draftOrders: number;
-  confirmedOrders: number;
-  processingOrders: number;
-  partiallyDeliveredOrders: number;
-  deliveredOrders: number;
-  cancelledOrders: number;
-  paymentPending: number;
-  overdueDeliveries: number;
-}
-
-// Legacy OrderItem type for backward compatibility
 export interface OrderItem {
   id: string;
   orderId: string;
@@ -469,246 +213,49 @@ export interface OrderItem {
   totalPrice: number;
 }
 
-// Create order input
-export interface CreateOrderInput {
-  customerId: string;
-  orderType?: OrderType;
-  priority?: Priority;
-  expectedDeliveryDate?: string;
-  billingAddress?: GSTAddress;
-  shippingAddress?: ShippingAddress;
-  placeOfSupply?: string;
-  items: {
-    inventoryId: string;
-    quantity: number;
-    unitPrice: number;
-    dimensions?: ItemDimensions;
-    gstRate?: number;
-    discountPercent?: number;
-    lineNotes?: string;
-  }[];
-  discountPercent?: number;
-  internalNotes?: string;
-  customerNotes?: string;
-  termsAndConditions?: string;
-}
-
-// =============================================================================
-// INVOICE TYPES (GST-Compliant)
-// =============================================================================
-
-// Invoice classification types
-export type InvoiceType = "TAX_INVOICE" | "BILL_OF_SUPPLY" | "CREDIT_NOTE" | "DEBIT_NOTE" | "PROFORMA";
-export type SupplyType = "INTRA_STATE" | "INTER_STATE" | "EXPORT" | "SEZ";
-export type CustomerType = "B2B_REGISTERED" | "B2B_UNREGISTERED" | "B2C" | "SEZ" | "EXPORT";
-export type InvoiceStatus = "DRAFT" | "ISSUED" | "PARTIAL" | "PAID" | "OVERDUE" | "CANCELLED";
-export type UnitOfMeasure = "SQF" | "PCS" | "CFT" | "RFT" | "BOX" | "NOS" | "MTR" | "KG";
-
-// Indian State Codes for GST
-export interface StateCode {
-  code: string; // 2-digit code like "24", "27", "29"
-  name: string;
-  shortName: string; // GJ, MH, KA, etc.
-}
-
-// Address with GST-required fields
-export interface GSTAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  stateCode: string; // 2-digit GST state code
-  pincode: string;
-  country?: string;
-}
-
-// Bank details for payment collection
-export interface BankDetails {
-  accountName: string;
-  accountNumber: string;
-  ifscCode: string;
-  bankName: string;
-  branch?: string;
-  upiId?: string;
-}
-
-// Seller/Business details
-export interface SellerDetails {
-  legalName: string;
-  tradeName?: string;
-  gstin: string; // 15-character GSTIN
-  pan: string; // 10-character PAN
-  address: GSTAddress;
-  contact: {
-    phone: string;
-    email?: string;
-  };
-  bankDetails?: BankDetails;
-  signatureImage?: string; // Base64
-}
-
-// Buyer details on invoice
-export interface BuyerDetails {
+export interface OrderEvent {
   id: string;
   name: string;
-  gstin?: string | null; // Required for B2B_REGISTERED
-  customerType: CustomerType;
-  billingAddress: GSTAddress;
-  shippingAddress: GSTAddress;
-  placeOfSupply: string; // State code determining IGST vs CGST+SGST
-  contact: {
-    phone?: string;
-    email?: string;
-  };
-}
-
-// Item dimensions (for slabs, tiles)
-export interface ItemDimensions {
-  length: number;
-  width: number;
-  thickness?: number;
-  unit: "MM" | "CM" | "INCH" | "FT";
-}
-
-// Enhanced invoice line item with GST details
-export interface InvoiceLineItem {
-  id: string;
-  slNo: number;
-  invoiceId: string;
-  inventoryId?: string | null;
-  
-  // Item details
-  itemCode?: string;
-  name: string;
-  description?: string;
-  hsnCode: string; // 4-8 digit HSN code (6802 for marble)
-  
-  // Dimensions (marble-specific)
-  dimensions?: ItemDimensions;
-  areaSqFt?: number; // Calculated from dimensions
-  
-  // Quantity and pricing
-  quantity: number;
-  unit: UnitOfMeasure;
-  unitPrice: number;
-  
-  // Discount
-  discount?: {
-    type: "PERCENT" | "FLAT";
-    value: number;
-    amount: number; // Calculated discount amount
-  };
-  
-  // Tax calculation
-  taxableValue: number; // (qty × unitPrice) - discount
-  gstRate: number; // 0, 5, 12, 18, 28
-  
-  // Tax amounts (either CGST+SGST or IGST)
-  cgstRate?: number;
-  cgstAmount?: number;
-  sgstRate?: number;
-  sgstAmount?: number;
-  igstRate?: number;
-  igstAmount?: number;
-  cessRate?: number;
-  cessAmount?: number;
-  
-  // Line total
-  totalAmount: number;
-}
-
-// Tax summary by rate
-export interface TaxBreakdown {
-  gstRate: number;
-  taxableValue: number;
-  cgstAmount: number;
-  sgstAmount: number;
-  igstAmount: number;
-  cessAmount: number;
-  totalTax: number;
-}
-
-// Invoice totals
-export interface InvoiceTotals {
-  subtotal: number; // Sum of taxable values
-  totalDiscount: number;
-  totalCgst: number;
-  totalSgst: number;
-  totalIgst: number;
-  totalCess: number;
-  totalTax: number;
-  roundOff: number; // Max ±0.50
-  grandTotal: number;
-  amountInWords: string; // "Rupees Fifty Thousand Only"
-}
-
-// Payment record for invoice
-export interface InvoicePaymentRecord {
-  id: string;
-  invoiceId: string;
-  date: string;
-  amount: number;
-  method: PaymentMethod;
-  reference?: string;
-  notes?: string;
-  createdBy: string;
+  payload: Record<string, unknown>;
   createdAt: string;
 }
 
-// E-invoice and compliance fields
-export interface InvoiceCompliance {
-  eInvoiceIrn?: string; // Invoice Reference Number from IRP
-  eInvoiceAckNo?: string;
-  eInvoiceAckDate?: string;
-  eWayBillNo?: string;
-  eWayBillDate?: string;
-  qrCode?: string; // Base64 encoded QR
-  declaration?: string;
-  termsAndConditions?: string;
-  authorizedSignatory?: string;
+/** Display shape for order payment (receipt/success dialog). Backend Payment + orderNumber etc. */
+export interface OrderPayment {
+  id: string;
+  receiptNumber: string;
+  orderId: string;
+  orderNumber: string;
+  paymentDate: string;
+  amount: number;
+  paymentMode: PaymentMode;
+  referenceNumber?: string;
+  bankName?: string;
+  chequeDate?: string;
+  allocationType?: string;
+  notes?: string;
+  receivedBy?: string;
+  createdAt: string;
 }
 
-// Linked documents
-export interface InvoiceLinks {
-  orderId?: string;
-  quotationId?: string;
-  deliveryChallanId?: string;
-  originalInvoiceId?: string; // For credit/debit notes
-  creditNoteIds?: string[];
-}
+export type PaymentMode = "CASH" | "UPI" | "BANK_TRANSFER" | "CHEQUE" | "CARD" | "CREDIT";
 
-// Main Invoice interface (GST-Compliant)
+// =============================================================================
+// INVOICE TYPES
+// =============================================================================
+
+export type InvoiceStatus = "DRAFT" | "ISSUED" | "PAID" | "CANCELLED";
+
 export interface Invoice {
   id: string;
   tenantId: string;
   storeId: string;
-  
-  // Invoice identification
+  partyId: string;
+  partyName?: string; // From backend InvoiceResponse
+  orderId: string | null;
   invoiceNumber: string;
-  invoiceDate: string;
-  dueDate?: string;
-  financialYear: string; // "2025-26"
-  
-  // Invoice classification
-  invoiceType: InvoiceType;
-  supplyType: SupplyType;
-  reverseCharge: boolean;
-  
-  // Parties
-  seller: SellerDetails;
-  buyer: BuyerDetails;
-  partyId: string; // Legacy reference to Party
-  
-  // Line items
-  items: InvoiceLineItem[];
-  
-  // Tax summary
-  taxSummary: TaxBreakdown[];
-  
-  // Totals
-  totals: InvoiceTotals;
-  
-  // Legacy flat fields (for backward compatibility)
+  status: InvoiceStatus;
+  computedStatus?: "PARTIAL" | "OVERDUE"; // Computed status from backend
   subtotal: number;
   discountAmount: number;
   isGst: boolean;
@@ -721,109 +268,66 @@ export interface Invoice {
   totalAmount: number;
   paidAmount: number;
   dueAmount: number;
-  
-  // Payment tracking
-  paymentStatus: "UNPAID" | "PARTIAL" | "PAID" | "OVERDUE";
-  paymentHistory: InvoicePaymentRecord[];
-  
-  // Compliance
-  compliance?: InvoiceCompliance;
-  
-  // Links
-  links?: InvoiceLinks;
-  orderId: string | null;
-  
-  // Notes
+  dueDate?: string | null;
   notes: string | null;
-  internalNotes?: string;
-  
-  // Status and metadata
-  status: InvoiceStatus;
-  version: number;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  cancelledAt?: string;
-  cancellationReason?: string;
-  
-  // Relations (for API responses)
+  // Relations
   party?: Party;
-  payments?: Payment[];
+  items?: InvoiceItem[];
+  payments?: InvoicePaymentDisplay[];
 }
 
-// Simplified InvoiceItem for backward compatibility
+/** Payment shape from invoice response - supports createdAt or date for display */
+export interface InvoicePaymentDisplay {
+  id: string;
+  amount: number;
+  method: string;
+  reference: string | null;
+  createdAt?: string;
+  date?: string;
+}
+
 export interface InvoiceItem {
   id: string;
   invoiceId: string;
   inventoryId: string | null;
   name: string;
   description: string | null;
-  hsnCode?: string;
+  hsnCode?: string | null;
   quantity: number;
-  unit?: UnitOfMeasure;
   unitPrice: number;
   totalPrice: number;
-  // Enhanced fields
-  dimensions?: ItemDimensions;
-  areaSqFt?: number;
-  taxableValue?: number;
-  gstRate?: number;
-  cgstAmount?: number;
-  sgstAmount?: number;
-  igstAmount?: number;
 }
 
-// Indian States for GST
-export const INDIAN_STATES: StateCode[] = [
-  { code: "01", name: "Jammu & Kashmir", shortName: "JK" },
-  { code: "02", name: "Himachal Pradesh", shortName: "HP" },
-  { code: "03", name: "Punjab", shortName: "PB" },
-  { code: "04", name: "Chandigarh", shortName: "CH" },
-  { code: "05", name: "Uttarakhand", shortName: "UK" },
-  { code: "06", name: "Haryana", shortName: "HR" },
-  { code: "07", name: "Delhi", shortName: "DL" },
-  { code: "08", name: "Rajasthan", shortName: "RJ" },
-  { code: "09", name: "Uttar Pradesh", shortName: "UP" },
-  { code: "10", name: "Bihar", shortName: "BR" },
-  { code: "11", name: "Sikkim", shortName: "SK" },
-  { code: "12", name: "Arunachal Pradesh", shortName: "AR" },
-  { code: "13", name: "Nagaland", shortName: "NL" },
-  { code: "14", name: "Manipur", shortName: "MN" },
-  { code: "15", name: "Mizoram", shortName: "MZ" },
-  { code: "16", name: "Tripura", shortName: "TR" },
-  { code: "17", name: "Meghalaya", shortName: "ML" },
-  { code: "18", name: "Assam", shortName: "AS" },
-  { code: "19", name: "West Bengal", shortName: "WB" },
-  { code: "20", name: "Jharkhand", shortName: "JH" },
-  { code: "21", name: "Odisha", shortName: "OD" },
-  { code: "22", name: "Chhattisgarh", shortName: "CG" },
-  { code: "23", name: "Madhya Pradesh", shortName: "MP" },
-  { code: "24", name: "Gujarat", shortName: "GJ" },
-  { code: "26", name: "Dadra & Nagar Haveli and Daman & Diu", shortName: "DN" },
-  { code: "27", name: "Maharashtra", shortName: "MH" },
-  { code: "29", name: "Karnataka", shortName: "KA" },
-  { code: "30", name: "Goa", shortName: "GA" },
-  { code: "31", name: "Lakshadweep", shortName: "LD" },
-  { code: "32", name: "Kerala", shortName: "KL" },
-  { code: "33", name: "Tamil Nadu", shortName: "TN" },
-  { code: "34", name: "Puducherry", shortName: "PY" },
-  { code: "35", name: "Andaman & Nicobar Islands", shortName: "AN" },
-  { code: "36", name: "Telangana", shortName: "TS" },
-  { code: "37", name: "Andhra Pradesh", shortName: "AP" },
-  { code: "38", name: "Ladakh", shortName: "LA" },
-];
+/**
+ * Compute invoice display status (PARTIAL or OVERDUE) based on payment and due date.
+ * Returns the computed status if applicable, otherwise returns the base status.
+ */
+export function getInvoiceDisplayStatus(invoice: Invoice): InvoiceStatus | "PARTIAL" | "OVERDUE" {
+  // Use computed status from backend if available
+  if (invoice.computedStatus) {
+    return invoice.computedStatus;
+  }
 
-// HSN codes for marble business
-export const MARBLE_HSN_CODES = {
-  MARBLE_SLAB: "68022100",
-  MARBLE_BLOCK: "25151100",
-  GRANITE_SLAB: "68022300",
-  GRANITE_BLOCK: "25161100",
-  TILES_CERAMIC: "69072100",
-  TILES_PORCELAIN: "69072200",
-  CUTTING_SERVICE: "998599",
-  TRANSPORT_SERVICE: "996511",
-} as const;
+  // Fallback: compute on frontend if backend didn't provide it
+  if (invoice.status === "CANCELLED" || invoice.status === "PAID") {
+    return invoice.status;
+  }
+
+  // Check for OVERDUE first (takes priority)
+  if (invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.status !== "PAID") {
+    return "OVERDUE";
+  }
+
+  // Check for PARTIAL payment
+  if (invoice.paidAmount > 0 && invoice.paidAmount < invoice.totalAmount) {
+    return "PARTIAL";
+  }
+
+  return invoice.status;
+}
 
 // =============================================================================
 // PAYMENT TYPES
@@ -837,6 +341,8 @@ export interface Payment {
   tenantId: string;
   storeId: string;
   partyId: string;
+  partyName?: string | null;
+  orderId?: string | null;
   invoiceId: string | null;
   type: PaymentType;
   method: PaymentMethod;
@@ -849,6 +355,78 @@ export interface Payment {
   // Relations
   party?: Party;
   invoice?: Invoice;
+}
+
+// =============================================================================
+// EXPENSE TYPES
+// =============================================================================
+
+export type ExpenseCategory =
+  | "MATERIAL_PURCHASE"
+  | "FREIGHT"
+  | "LABOR"
+  | "RENT"
+  | "UTILITIES"
+  | "EQUIPMENT"
+  | "VEHICLE"
+  | "PACKAGING"
+  | "MARKETING"
+  | "OFFICE"
+  | "PROFESSIONAL"
+  | "TAXES"
+  | "INSURANCE"
+  | "OTHER";
+
+export type ExpenseStatus = "PENDING" | "PAID" | "CANCELLED";
+
+export type RecurringFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
+
+export interface Expense {
+  id: string;
+  tenantId: string;
+  storeId: string;
+  expenseNumber: string;
+  category: ExpenseCategory;
+  description: string;
+  date: string;
+  amount: number;
+  gstAmount?: number;
+  gstRate?: number;
+  totalAmount: number;
+  vendorId?: string;
+  vendorName?: string;
+  billNumber?: string;
+  billDate?: string;
+  status: ExpenseStatus;
+  paidDate?: string;
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
+  isRecurring: boolean;
+  recurringFrequency?: RecurringFrequency;
+  recurringEndDate?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpenseInput {
+  category: ExpenseCategory;
+  description: string;
+  date: string;
+  amount: number;
+  gstAmount?: number;
+  gstRate?: number;
+  vendorId?: string;
+  vendorName?: string;
+  billNumber?: string;
+  billDate?: string;
+  status?: ExpenseStatus;
+  paidDate?: string;
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
+  isRecurring?: boolean;
+  recurringFrequency?: RecurringFrequency;
+  recurringEndDate?: string;
 }
 
 // =============================================================================
@@ -892,65 +470,60 @@ export const PAGINATION_DEFAULTS = {
 } as const;
 
 // =============================================================================
-// CHART TYPES
+// INDIAN STATES & UNION TERRITORIES (GST Codes)
 // =============================================================================
 
-export interface StackedChartData {
-  month: string;
-  amount: number;
-  returnAmount: number;
-}
-
-export interface StockCategoryData {
+export interface IndianState {
+  code: string;
   name: string;
-  value: number;
-  color: string;
 }
 
-export interface StockMetric {
-  label: string;
-  value: string | number;
-  highlight?: boolean;
-}
-
-export interface StockParty {
-  name: string;
-  material: string;
-  quantity: string;
-}
-
-export interface LowStockItem {
-  id: string;
-  name: string;
-  materialType: string;
-  currentQty: number;
-  threshold: number;
-  unit?: string;
-}
+export const INDIAN_STATES: IndianState[] = [
+  { code: "01", name: "Jammu and Kashmir" },
+  { code: "02", name: "Himachal Pradesh" },
+  { code: "03", name: "Punjab" },
+  { code: "04", name: "Chandigarh" },
+  { code: "05", name: "Uttarakhand" },
+  { code: "06", name: "Haryana" },
+  { code: "07", name: "Delhi" },
+  { code: "08", name: "Rajasthan" },
+  { code: "09", name: "Uttar Pradesh" },
+  { code: "10", name: "Bihar" },
+  { code: "11", name: "Sikkim" },
+  { code: "12", name: "Arunachal Pradesh" },
+  { code: "13", name: "Nagaland" },
+  { code: "14", name: "Manipur" },
+  { code: "15", name: "Mizoram" },
+  { code: "16", name: "Tripura" },
+  { code: "17", name: "Meghalaya" },
+  { code: "18", name: "Assam" },
+  { code: "19", name: "West Bengal" },
+  { code: "20", name: "Jharkhand" },
+  { code: "21", name: "Odisha" },
+  { code: "22", name: "Chhattisgarh" },
+  { code: "23", name: "Madhya Pradesh" },
+  { code: "24", name: "Gujarat" },
+  { code: "25", name: "Daman and Diu" },
+  { code: "26", name: "Dadra and Nagar Haveli" },
+  { code: "27", name: "Maharashtra" },
+  { code: "28", name: "Andhra Pradesh" },
+  { code: "29", name: "Karnataka" },
+  { code: "30", name: "Goa" },
+  { code: "31", name: "Lakshadweep" },
+  { code: "32", name: "Kerala" },
+  { code: "33", name: "Tamil Nadu" },
+  { code: "34", name: "Puducherry" },
+  { code: "35", name: "Andaman and Nicobar Islands" },
+  { code: "36", name: "Telangana" },
+  { code: "37", name: "Andhra Pradesh (New)" },
+  { code: "38", name: "Ladakh" },
+] as const;
 
 // =============================================================================
 // DASHBOARD TYPES
 // =============================================================================
 
 export interface DashboardStats {
-  // New stat cards with date filtering
-  sales: {
-    amount: number;
-    count: number;
-  };
-  purchase: {
-    amount: number;
-    count: number;
-  };
-  paymentIn: {
-    amount: number;
-    count: number;
-  };
-  paymentOut: {
-    amount: number;
-    count: number;
-  };
-  // Legacy fields (kept for backward compatibility)
   todaySales: {
     amount: number;
     count: number;
@@ -974,11 +547,6 @@ export interface DashboardStats {
     draftCount: number;
     confirmedCount: number;
   };
-}
-
-export interface DashboardStatsParams {
-  startDate?: string;
-  endDate?: string;
 }
 
 export interface ActionItem {
@@ -1035,6 +603,8 @@ export interface CreateInventoryInput {
   finish?: string;
   supplier?: string;
   lotNumber?: string;
+  partyId?: string;
+  quantity?: number;
   length?: number;
   height?: number;
   thickness?: number;
@@ -1044,6 +614,7 @@ export interface CreateInventoryInput {
   buyPrice?: number;
   sellPrice?: number;
   lowStockThreshold?: number;
+  color?: string;
 }
 
 export interface CreatePartyInput {
@@ -1056,57 +627,50 @@ export interface CreatePartyInput {
   openingBalance?: number;
 }
 
-// Note: CreateOrderInput is defined in Order Types section above
+export interface CreateOrderInput {
+  partyId: string;
+  items: Array<{
+    inventoryId: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+  notes?: string;
+}
 
 export interface CreateInvoiceInput {
   partyId: string;
   orderId?: string;
-  invoiceType?: InvoiceType;
-  invoiceDate?: string;
-  dueDate?: string;
-  
-  // Buyer details (auto-filled from party, can be overridden)
-  buyerGstin?: string;
-  customerType?: CustomerType;
-  billingAddress?: Partial<GSTAddress>;
-  shippingAddress?: Partial<GSTAddress>;
-  placeOfSupply?: string; // State code
-  
-  // Line items
   items: Array<{
     inventoryId?: string;
     name: string;
     description?: string;
     hsnCode?: string;
-    dimensions?: ItemDimensions;
     quantity: number;
-    unit?: UnitOfMeasure;
     unitPrice: number;
-    discount?: {
-      type: "PERCENT" | "FLAT";
-      value: number;
-    };
-    gstRate?: number;
   }>;
-  
-  // Totals
   discountAmount?: number;
-  roundOff?: number;
-  
-  // Tax config
   isGst?: boolean;
   cgstRate?: number;
   sgstRate?: number;
   igstRate?: number;
-  
-  // Notes
+  dueDate?: string; // ISO date string
   notes?: string;
-  internalNotes?: string;
-  termsAndConditions?: string;
+}
+
+export interface CreateInvoiceFromOrderInput {
+  orderId: string;
+  dueDate?: string;
+  notes?: string;
+  isGst?: boolean;
+  cgstRate?: number;
+  sgstRate?: number;
+  igstRate?: number;
+  discountAmount?: number;
 }
 
 export interface RecordPaymentInput {
   partyId: string;
+  orderId?: string;
   invoiceId?: string;
   type: PaymentType;
   method: PaymentMethod;

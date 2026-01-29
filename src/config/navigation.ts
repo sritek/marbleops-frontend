@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   FileText,
   Wallet,
+  Receipt,
   Users,
   BarChart3,
   Settings,
@@ -66,6 +67,12 @@ export const navigationItems: NavItem[] = [
     labelKey: "nav.payments",
     icon: Wallet,
     permission: "PAYMENT_VIEW",
+  },
+  {
+    href: "/expenses",
+    labelKey: "nav.expenses",
+    icon: Receipt,
+    permission: "EXPENSE_VIEW",
   },
   {
     href: "/parties",

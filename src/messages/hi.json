@@ -39,7 +39,11 @@
     "active": "सक्रिय",
     "inactive": "निष्क्रिय",
     "allStatus": "सभी स्थिति",
+    "allStatuses": "सभी स्थितियां",
     "allTypes": "सभी प्रकार",
+    "allCategories": "सभी श्रेणियां",
+    "category": "श्रेणी",
+    "number": "संख्या",
     "tryAdjustingFilters": "अपने फ़िल्टर को एडजस्ट करें",
     "noResults": "कोई परिणाम नहीं मिला",
     "getStarted": "शुरू करें",
@@ -48,7 +52,8 @@
     "saveChanges": "परिवर्तन सहेजें",
     "createdAt": "बनाया गया",
     "updatedAt": "अपडेट किया गया",
-    "notifications": "सूचनाएं"
+    "notifications": "सूचनाएं",
+    "change": "बदलें"
   },
   "nav": {
     "dashboard": "डैशबोर्ड",
@@ -56,6 +61,7 @@
     "orders": "ऑर्डर",
     "invoices": "इनवॉइस",
     "payments": "भुगतान",
+    "expenses": "व्यय",
     "parties": "पार्टी",
     "reports": "रिपोर्ट",
     "deadStock": "डेड स्टॉक",
@@ -161,7 +167,7 @@
     "searchPlaceholder": "नाम, लॉट नंबर से खोजें...",
     "allMaterials": "सभी मटेरियल",
     "allColors": "सभी रंग",
-    "color": "रंग",
+    "colorLabel": "रंग",
     "applyFilters": "फ़िल्टर लागू करें",
     "clearFilters": "साफ़ करें",
     "activeFilters": "सक्रिय फ़िल्टर",
@@ -193,6 +199,7 @@
   "orders": {
     "title": "ऑर्डर",
     "subtitle": "ग्राहक ऑर्डर और डिलीवरी प्रबंधित करें",
+    "order": "ऑर्डर",
     "newOrder": "नया ऑर्डर",
     "createNewOrderDesc": "GST गणना के साथ नया ग्राहक ऑर्डर बनाएं",
     "orderNumber": "ऑर्डर #",
@@ -219,6 +226,7 @@
     "cancelOrder": "ऑर्डर रद्द करें",
     "holdOrder": "होल्ड पर रखें",
     "resumeOrder": "फिर से शुरू करें",
+    "backToOrder": "ऑर्डर पर वापस जाएं",
     "overdue": "अतिदेय",
     "dueBy": "तक",
     "delivery": "डिलीवरी",
@@ -238,7 +246,9 @@
       "overdue": "अतिदेय",
       "pastDueDate": "नियत तारीख के बाद",
       "paymentDue": "भुगतान बकाया",
-      "outstanding": "बकाया"
+      "outstanding": "बकाया",
+      "delivered": "डिलीवर किया गया",
+      "completed": "पूर्ण"
     },
 
     "status": {
@@ -261,6 +271,7 @@
       "cancelled": "रद्द"
     },
 
+    "priorityLabel": "प्राथमिकता",
     "priority": {
       "urgent": "अर्जेंट",
       "normal": "सामान्य",
@@ -279,6 +290,8 @@
     "expectedDelivery": "अपेक्षित डिलीवरी",
     "orderDate": "ऑर्डर तारीख",
     "orderSummary": "ऑर्डर सारांश",
+    "totalAmount": "कुल राशि",
+    "orderTotal": "ऑर्डर कुल",
     "searchCustomer": "नाम, फोन, GSTIN से ग्राहक खोजें...",
     "addresses": "पते",
     "billingAddress": "बिलिंग पता",
@@ -312,6 +325,8 @@
     "internalNotesPlaceholder": "केवल स्टाफ को दिखाई देने वाले नोट्स...",
     "customerNotes": "ग्राहक नोट्स",
     "customerNotesPlaceholder": "दस्तावेजों पर ग्राहक को दिखाई देने वाले नोट्स...",
+    "noCustomersFound": "कोई पार्टी उपलब्ध नहीं",
+    "noInventoryFound": "कोई इन्वेंटरी उपलब्ध नहीं",
     "overallDiscount": "कुल छूट",
     "subtotal": "उप-योग",
     "discount": "छूट",
@@ -355,7 +370,35 @@
       "orderConfirmed": "ऑर्डर पुष्टि",
       "paymentReceived": "भुगतान प्राप्त",
       "deliveryCreated": "डिलीवरी बनाई गई",
+      "orderDelivered": "ऑर्डर डिलीवर किया गया",
       "orderCancelled": "ऑर्डर रद्द"
+    },
+
+    "paymentRecord": {
+      "title": "भुगतान दर्ज करें",
+      "amount": "भुगतान राशि",
+      "paymentMode": "भुगतान मोड",
+      "paymentDate": "भुगतान तारीख",
+      "referenceNumber": "संदर्भ संख्या",
+      "bankName": "बैंक का नाम",
+      "chequeNumber": "चेक नंबर",
+      "chequeDate": "चेक तारीख",
+      "allocationType": "आवंटन प्रकार",
+      "recordPayment": "भुगतान दर्ज करें",
+      "paymentRecorded": "भुगतान सफलतापूर्वक दर्ज हुआ",
+      "modes": {
+        "cash": "नकद",
+        "upi": "UPI",
+        "banktransfer": "बैंक ट्रांसफर",
+        "cheque": "चेक",
+        "card": "कार्ड",
+        "credit": "क्रेडिट"
+      },
+      "allocation": {
+        "advance": "अग्रिम भुगतान",
+        "againstOrder": "ऑर्डर के लिए",
+        "againstInvoice": "इनवॉइस के लिए"
+      }
     },
 
     "deliveryChallan": {
@@ -377,11 +420,26 @@
         "courier": "कूरियर",
         "customerPickup": "ग्राहक पिकअप",
         "thirdParty": "थर्ड पार्टी ट्रांसपोर्ट"
-      }
+      },
+      "status": {
+        "dispatched": "भेजा गया",
+        "in_transit": "रास्ते में",
+        "delivered": "पहुंच गया",
+        "partial_return": "आंशिक वापसी",
+        "full_return": "पूर्ण वापसी"
+      },
+      "updateStatus": "स्थिति अपडेट करें",
+      "markInTransit": "रास्ते में चिह्नित करें",
+      "markDelivered": "पहुंचा हुआ चिह्नित करें",
+      "printChallan": "चालान प्रिंट करें",
+      "downloadPDF": "PDF डाउनलोड करें",
+      "challanCreated": "डिलीवरी चालान बन गया",
+      "createAnother": "एक और डिलीवरी बनाएं"
     },
 
     "detail": {
-      "shippingAddress": "शिपिंग पता"
+      "shippingAddress": "शिपिंग पता",
+      "paymentProgress": "भुगतान प्रगति"
     }
   },
   "invoices": {
@@ -389,6 +447,7 @@
     "subtitle": "बिलिंग और इनवॉइस प्रबंधित करें",
     "newInvoice": "नया इनवॉइस",
     "createNewInvoice": "नया GST-अनुपालक टैक्स इनवॉइस बनाएं",
+    "createInvoiceDesc": "नया GST-अनुपालक टैक्स इनवॉइस बनाएं",
     "invoiceNumber": "इनवॉइस #",
     "invoiceDate": "इनवॉइस तारीख",
     "invoiceType": "इनवॉइस प्रकार",
@@ -416,6 +475,7 @@
     "billingState": "बिलिंग राज्य",
     "placeOfSupply": "आपूर्ति का स्थान",
     "lineItems": "आइटम",
+    "items": "आइटम",
     "addItem": "आइटम जोड़ें",
     "item": "आइटम",
     "qty": "मात्रा",
@@ -426,6 +486,7 @@
     "grandTotal": "कुल योग",
     "roundOff": "राउंड ऑफ",
     "amountInWords": "शब्दों में राशि",
+    "dueDate": "नियत तारीख",
     "bankDetails": "बैंक विवरण",
     "termsAndConditions": "नियम और शर्तें",
     "notes": "नोट्स",
@@ -437,6 +498,7 @@
     "downloadExcel": "Excel डाउनलोड करें",
     "print": "प्रिंट",
     "paymentHistory": "भुगतान इतिहास",
+    "paymentSummary": "भुगतान सारांश",
     "totalPaid": "कुल भुगतान",
     "status": {
       "draft": "ड्राफ्ट",
@@ -492,6 +554,97 @@
       "upi": "UPI",
       "cheque": "चेक",
       "other": "अन्य"
+    }
+  },
+  "expenses": {
+    "title": "व्यय",
+    "subtitle": "व्यापारिक व्यय ट्रैक और प्रबंधित करें",
+    "newExpense": "नया व्यय",
+    "searchPlaceholder": "व्यय खोजें...",
+    "noExpenses": "कोई व्यय नहीं मिला",
+    "noExpensesDesc": "शुरू करने के लिए अपना पहला व्यय दर्ज करें",
+    "expenseNotFound": "व्यय नहीं मिला",
+    "expenseCreated": "व्यय सफलतापूर्वक बनाया गया",
+    "viewAllExpenses": "सभी व्यय देखें",
+    "viewExpense": "व्यय देखें",
+    "markPaidDescription": "इस व्यय के लिए भुगतान विवरण दर्ज करें",
+    "summary": "सारांश",
+    "category": {
+      "materialpurchase": "सामग्री खरीद",
+      "freight": "माल ढुलाई/परिवहन",
+      "labor": "श्रम",
+      "rent": "किराया",
+      "utilities": "उपयोगिताएं",
+      "equipment": "उपकरण",
+      "vehicle": "वाहन",
+      "packaging": "पैकेजिंग",
+      "marketing": "मार्केटिंग",
+      "office": "ऑफिस सप्लाई",
+      "professional": "पेशेवर शुल्क",
+      "taxes": "कर और लाइसेंस",
+      "insurance": "बीमा",
+      "other": "अन्य"
+    },
+    "status": {
+      "pending": "लंबित",
+      "paid": "भुगतान किया",
+      "cancelled": "रद्द"
+    },
+    "fields": {
+      "category": "श्रेणी",
+      "basicInfo": "मूल जानकारी",
+      "amountDetails": "राशि विवरण",
+      "description": "विवरण",
+      "descriptionPlaceholder": "व्यय विवरण दर्ज करें...",
+      "amount": "राशि (GST को छोड़कर)",
+      "gstRate": "GST दर (%)",
+      "gstAmount": "GST राशि",
+      "totalAmount": "कुल राशि",
+      "vendor": "विक्रेता/आपूर्तिकर्ता",
+      "vendorName": "विक्रेता का नाम",
+      "vendorNamePlaceholder": "विक्रेता का नाम दर्ज करें",
+      "selectVendor": "विक्रेता चुनें",
+      "selectVendorPlaceholder": "चुनें या नया दर्ज करें",
+      "newVendor": "नया विक्रेता दर्ज करें",
+      "billNumber": "बिल/इनवॉइस नंबर",
+      "billNumberPlaceholder": "वैकल्पिक",
+      "billDate": "बिल की तारीख",
+      "paymentStatus": "भुगतान स्थिति",
+      "paymentMethod": "भुगतान विधि",
+      "paymentReference": "संदर्भ संख्या",
+      "paymentReferencePlaceholder": "UTR, लेनदेन ID, आदि",
+      "paidDate": "भुगतान की तारीख",
+      "paymentInfo": "भुगतान जानकारी",
+      "amountDetails": "राशि विवरण",
+      "basicInfo": "मूल जानकारी",
+      "expenseNumber": "व्यय #",
+      "createdAt": "बनाया गया"
+    },
+    "recurring": {
+      "title": "आवर्ती व्यय",
+      "isRecurring": "यह एक आवर्ती व्यय है",
+      "frequency": "आवृत्ति",
+      "weekly": "साप्ताहिक",
+      "monthly": "मासिक",
+      "quarterly": "त्रैमासिक",
+      "yearly": "वार्षिक",
+      "endDate": "समाप्ति तिथि (वैकल्पिक)"
+    },
+    "attachments": {
+      "title": "अनुलग्नक",
+      "upload": "रसीद/बिल अपलोड करें",
+      "dragDrop": "खींचें और छोड़ें या अपलोड करने के लिए क्लिक करें"
+    },
+    "actions": {
+      "markPaid": "भुगतान के रूप में चिह्नित करें",
+      "duplicate": "डुप्लिकेट",
+      "cancel": "व्यय रद्द करें"
+    },
+    "stats": {
+      "totalExpenses": "कुल व्यय",
+      "thisMonth": "इस महीने",
+      "gstClaimable": "GST इनपुट क्रेडिट",
+      "pendingPayment": "लंबित भुगतान"
     }
   },
   "parties": {

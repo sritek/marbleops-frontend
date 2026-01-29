@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, IndianRupee, CreditCard, Building2, Smartphone, Banknote } from "lucide-react";
+import { ArrowLeft, IndianRupee, CreditCard, Building2, Smartphone, Banknote, CheckCircle, Printer } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePermission } from "@/lib/auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -20,8 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getMockOrderById } from "@/lib/mock/orders";
-import type { Order, PaymentMode } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useOrder, usePayments, useRecordPayment } from "@/lib/api";
+import { downloadReceiptPDF, printReceiptPDF } from "@/lib/receipt-pdf";
+import type { Order, PaymentMode, OrderPayment, Payment, PaymentMethod } from "@/types";
 
 const paymentModeIcons: Record<PaymentMode, React.ElementType> = {
   CASH: Banknote,
@@ -32,6 +39,49 @@ const paymentModeIcons: Record<PaymentMode, React.ElementType> = {
   CREDIT: IndianRupee,
 };
 
+function toBackendMethod(mode: PaymentMode): PaymentMethod {
+  if (mode === "CARD" || mode === "CREDIT") return "OTHER";
+  return mode;
+}
+
+function toOrderPaymentDisplay(payment: Payment, order: Order): OrderPayment {
+  const dateStr = typeof payment.createdAt === "string" ? payment.createdAt : new Date(payment.createdAt).toISOString();
+  return {
+    id: payment.id,
+    receiptNumber: payment.id,
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    paymentDate: dateStr.slice(0, 10),
+    amount: payment.amount,
+    paymentMode: (payment.method === "OTHER" ? "CARD" : payment.method) as PaymentMode,
+    referenceNumber: payment.reference ?? undefined,
+    notes: payment.notes ?? undefined,
+    createdAt: dateStr,
+  };
+}
+
+function orderForReceipt(
+  order: Order,
+  amountPaid: number
+): Order & {
+  customerSnapshot: { name: string; gstin?: string; phone?: string; email?: string };
+  grandTotal: number;
+  amountPaid: number;
+} {
+  const party = order.party;
+  return {
+    ...order,
+    grandTotal: order.totalAmount,
+    amountPaid,
+    customerSnapshot: {
+      name: order.partyName ?? party?.name ?? "Customer",
+      gstin: party?.gstNumber ?? "",
+      phone: party?.phone ?? "",
+      email: party?.email ?? "",
+    },
+  };
+}
+
 export default function NewPaymentPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,10 +90,16 @@ export default function NewPaymentPage() {
   const t = useTranslations("orders");
   const tCommon = useTranslations("common");
 
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [order, setOrder] = React.useState<Order | null>(null);
+  const { data: order, isLoading: isLoadingOrder } = useOrder(orderId);
+  const { data: orderPayments = [] } = usePayments({ orderId });
+  const recordPayment = useRecordPayment();
 
-  // Form state
+  const [recordedPayment, setRecordedPayment] = React.useState<OrderPayment | null>(null);
+
+  const amountPaid = order ? orderPayments.reduce((s, p) => s + p.amount, 0) : 0;
+  const amountDue = order ? Math.max(0, order.totalAmount - amountPaid) : 0;
+  const grandTotal = order ? order.totalAmount : 0;
+
   const [paymentDate, setPaymentDate] = React.useState(
     new Date().toISOString().split("T")[0]
   );
@@ -56,55 +112,55 @@ export default function NewPaymentPage() {
   const [allocationType, setAllocationType] = React.useState<"ADVANCE" | "AGAINST_ORDER" | "AGAINST_INVOICE">("AGAINST_ORDER");
   const [notes, setNotes] = React.useState("");
 
-  // Load order data
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      const fetchedOrder = getMockOrderById(orderId);
-      setOrder(fetchedOrder || null);
-      if (fetchedOrder) {
-        setAmount(fetchedOrder.amountDue);
-      }
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [orderId]);
+    if (order && amountDue > 0) setAmount(amountDue);
+  }, [order?.id, amountDue]);
 
-  // Calculate payment progress
   const getPaymentProgress = () => {
-    if (!order || order.grandTotal === 0) return 100;
-    return Math.round((order.amountPaid / order.grandTotal) * 100);
+    if (!order || grandTotal === 0) return 100;
+    return Math.round((amountPaid / grandTotal) * 100);
   };
 
-  // Submit payment
   const handleSubmit = async () => {
-    if (amount <= 0) return;
-
-    console.log("Recording payment:", {
-      orderId,
-      paymentDate,
-      amount,
-      paymentMode,
-      referenceNumber,
-      bankName,
-      chequeNumber,
-      chequeDate,
-      allocationType,
-      notes,
-    });
-
-    router.push(`/orders/${orderId}`);
+    if (!order || amount <= 0) return;
+    try {
+      const payment = await recordPayment.mutateAsync({
+        partyId: order.partyId,
+        orderId,
+        amount,
+        type: "IN",
+        method: toBackendMethod(paymentMode),
+        reference: referenceNumber || undefined,
+        notes: notes || undefined,
+      });
+      setRecordedPayment(toOrderPaymentDisplay(payment, order));
+    } catch (error) {
+      console.error("Failed to record payment:", error);
+    }
   };
 
-  // Quick amount buttons
+  const handleRecordAnother = () => {
+    setRecordedPayment(null);
+    setPaymentDate(new Date().toISOString().split("T")[0]);
+    setPaymentMode("BANK_TRANSFER");
+    setReferenceNumber("");
+    setBankName("");
+    setChequeNumber("");
+    setChequeDate("");
+    setAllocationType("AGAINST_ORDER");
+    setNotes("");
+    if (order) setAmount(amountDue);
+  };
+
   const quickAmounts = order
     ? [
-        { label: "Full Due", value: order.amountDue },
-        { label: "50%", value: Math.round(order.amountDue / 2) },
-        { label: "25%", value: Math.round(order.amountDue / 4) },
+        { label: "Full Due", value: amountDue },
+        { label: "50%", value: Math.round(amountDue / 2) },
+        { label: "25%", value: Math.round(amountDue / 4) },
       ].filter((a) => a.value > 0)
     : [];
 
-  if (isLoading) {
+  if (isLoadingOrder) {
     return <PageLoader message="Loading order..." />;
   }
 
@@ -130,7 +186,7 @@ export default function NewPaymentPage() {
     );
   }
 
-  if (order.amountDue <= 0) {
+  if (order.amountDue <= 0 && !recordedPayment) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <IndianRupee className="h-12 w-12 text-success mb-4" />
@@ -144,20 +200,22 @@ export default function NewPaymentPage() {
   }
 
   const PaymentIcon = paymentModeIcons[paymentMode];
+  const RecordedPaymentIcon = recordedPayment ? paymentModeIcons[recordedPayment.paymentMode as PaymentMode] : null;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <>
+    <div className={`space-y-6 pb-24 lg:pb-6 transition-all duration-300 ${recordedPayment ? "blur-sm pointer-events-none" : ""}`}>
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      <div className="flex items-center gap-3 md:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="-ml-2 sm:ml-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary">
             {t("paymentRecord.title")}
           </h1>
-          <p className="text-sm text-text-muted">
-            {order.orderNumber} • {order.customerSnapshot.name}
+          <p className="text-sm text-text-muted truncate">
+            {order.orderNumber} • {order.partyName ?? "Customer"}
           </p>
         </div>
       </div>
@@ -181,10 +239,10 @@ export default function NewPaymentPage() {
           />
           <div className="flex justify-between mt-2 text-sm">
             <span className="text-text-muted">
-              Paid: <span className="text-success font-medium">{formatCurrency(order.amountPaid)}</span>
+              Paid: <span className="text-success font-medium">{formatCurrency(amountPaid)}</span>
             </span>
             <span className="text-text-muted">
-              Due: <span className="text-error font-medium">{formatCurrency(order.amountDue)}</span>
+              Due: <span className="text-error font-medium">{formatCurrency(amountDue)}</span>
             </span>
           </div>
         </CardContent>
@@ -211,10 +269,10 @@ export default function NewPaymentPage() {
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
                     className="pl-9 text-lg font-semibold"
-                    max={order.amountDue}
+                    max={amountDue}
                   />
                 </div>
-                {amount > order.amountDue && (
+                {amount > amountDue && (
                   <p className="text-xs text-warning-600">
                     Amount exceeds due amount. This will be recorded as overpayment.
                   </p>
@@ -399,8 +457,8 @@ export default function NewPaymentPage() {
           </Card>
         </div>
 
-        {/* Sidebar - Summary */}
-        <div className="lg:col-span-1">
+        {/* Sidebar - Summary (Desktop) */}
+        <div className="lg:col-span-1 hidden lg:block">
           <Card className="sticky top-20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Payment Summary</CardTitle>
@@ -409,15 +467,15 @@ export default function NewPaymentPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Order Total</span>
-                  <span>{formatCurrency(order.grandTotal)}</span>
+                  <span>{formatCurrency(grandTotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Already Paid</span>
-                  <span className="text-success">{formatCurrency(order.amountPaid)}</span>
+                  <span className="text-success">{formatCurrency(amountPaid)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Outstanding</span>
-                  <span className="text-error">{formatCurrency(order.amountDue)}</span>
+                  <span className="text-error">{formatCurrency(amountDue)}</span>
                 </div>
               </div>
 
@@ -428,8 +486,8 @@ export default function NewPaymentPage() {
                 </div>
                 <div className="flex justify-between text-sm mt-1">
                   <span className="text-text-muted">Balance After</span>
-                  <span className={order.amountDue - amount <= 0 ? "text-success" : "text-error"}>
-                    {formatCurrency(Math.max(0, order.amountDue - amount))}
+                  <span className={amountDue - amount <= 0 ? "text-success" : "text-error"}>
+                    {formatCurrency(Math.max(0, amountDue - amount))}
                   </span>
                 </div>
               </div>
@@ -448,10 +506,10 @@ export default function NewPaymentPage() {
                   onClick={handleSubmit}
                 >
                   <IndianRupee className="h-4 w-4 mr-2" />
-                  Record Payment
+                  {t("paymentRecord.recordPayment")}
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   className="w-full"
                   onClick={() => router.back()}
                 >
@@ -462,6 +520,95 @@ export default function NewPaymentPage() {
           </Card>
         </div>
       </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border-subtle p-4 lg:hidden z-50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-text-muted">Recording</p>
+            <p className="text-lg font-semibold text-primary-600 truncate">
+              {formatCurrency(amount)}
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="secondary" size="sm" onClick={() => router.back()}>
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              size="sm"
+              disabled={amount <= 0}
+              onClick={handleSubmit}
+            >
+              <IndianRupee className="h-4 w-4 mr-2" />
+              Record
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    {/* Success Overlay Dialog */}
+    <Dialog open={!!recordedPayment} onOpenChange={() => router.push(`/orders/${orderId}`)}>
+      <DialogContent className="sm:max-w-md">
+        {recordedPayment && order && (
+          <>
+            <DialogHeader className="text-center pb-2">
+              <div className="mx-auto mb-4 inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-100">
+                <CheckCircle className="h-8 w-8 text-success-600" />
+              </div>
+              <DialogTitle className="text-2xl font-semibold text-text-primary">
+                {t("paymentRecord.paymentRecorded")}
+              </DialogTitle>
+              <p className="text-text-muted text-sm">
+                {recordedPayment.receiptNumber}
+              </p>
+            </DialogHeader>
+
+            {/* Payment Summary */}
+            <div className="p-4 bg-surface-secondary rounded-lg space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("paymentRecord.amount")}</span>
+                <span className="font-semibold text-success">{formatCurrency(recordedPayment.amount)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("paymentRecord.paymentDate")}</span>
+                <span className="font-medium">{formatDate(recordedPayment.paymentDate)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("paymentRecord.paymentMode")}</span>
+                <span className="font-medium flex items-center gap-2">
+                  {RecordedPaymentIcon && <RecordedPaymentIcon className="h-4 w-4" />}
+                  {t(`paymentRecord.modes.${recordedPayment.paymentMode.toLowerCase().replace("_", "")}`)}
+                </span>
+              </div>
+              {recordedPayment.referenceNumber && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-muted">{t("paymentRecord.referenceNumber")}</span>
+                  <span className="font-medium">{recordedPayment.referenceNumber}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("order")}</span>
+                <span className="font-medium">{order.orderNumber}</span>
+              </div>
+            </div>
+
+            {/* Print Action */}
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!order) return;
+                const enrichedOrder = orderForReceipt(order, amountPaid + recordedPayment.amount);
+                printReceiptPDF(recordedPayment, enrichedOrder);
+              }}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Receipt
+            </Button>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

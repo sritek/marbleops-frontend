@@ -153,7 +153,7 @@ export default function InventoryPage() {
     },
     {
       accessorKey: "color",
-      header: t("color"),
+      header: t("colorLabel"),
       cell: ({ row }) => row.original.color || "—",
     },
     {
@@ -273,7 +273,7 @@ export default function InventoryPage() {
             {/* Color filter */}
             <Select value={pendingColor} onValueChange={setPendingColor}>
               <SelectTrigger className="w-full lg:w-[140px]">
-                <SelectValue placeholder={t("color")} />
+                <SelectValue placeholder={t("colorLabel")} />
               </SelectTrigger>
               <SelectContent>
                 {colorOptions.map((option) => (

@@ -7,16 +7,17 @@ import type {
   Inventory,
   Party,
   Order,
+  OrderEvent,
   Invoice,
   Payment,
   Store,
   User,
   DashboardStats,
-  DashboardStatsParams,
   CreateInventoryInput,
   CreatePartyInput,
   CreateOrderInput,
   CreateInvoiceInput,
+  CreateInvoiceFromOrderInput,
   RecordPaymentInput,
   CreateUserInput,
   UpdateUserInput,
@@ -31,7 +32,7 @@ import type {
 export const queryKeys = {
   // Dashboard
   dashboard: ["dashboard"] as const,
-  dashboardStats: (params?: DashboardStatsParams) => ["dashboard", "stats", params] as const,
+  dashboardStats: ["dashboard", "stats"] as const,
 
   // Stores
   stores: ["stores"] as const,
@@ -56,6 +57,7 @@ export const queryKeys = {
   orders: ["orders"] as const,
   ordersList: (filters?: Record<string, unknown>) => ["orders", "list", filters] as const,
   order: (id: string) => ["orders", id] as const,
+  orderEvents: (id: string) => ["orders", id, "events"] as const,
 
   // Invoices
   invoices: ["invoices"] as const,
@@ -77,17 +79,10 @@ export const queryKeys = {
 // DASHBOARD HOOKS
 // =============================================================================
 
-export function useDashboardStats(params?: DashboardStatsParams) {
+export function useDashboardStats() {
   return useQuery({
-    queryKey: queryKeys.dashboardStats(params),
-    queryFn: () => {
-      const searchParams = new URLSearchParams();
-      if (params?.startDate) searchParams.set("startDate", params.startDate);
-      if (params?.endDate) searchParams.set("endDate", params.endDate);
-      
-      const queryString = searchParams.toString();
-      return api.get<DashboardStats>(`/reports/dashboard${queryString ? `?${queryString}` : ""}`);
-    },
+    queryKey: queryKeys.dashboardStats,
+    queryFn: () => api.get<DashboardStats>("/reports/dashboard"),
     staleTime: 60 * 1000, // 1 minute
   });
 }
@@ -385,6 +380,14 @@ export function useOrder(id: string) {
   });
 }
 
+export function useOrderEvents(orderId: string) {
+  return useQuery({
+    queryKey: queryKeys.orderEvents(orderId),
+    queryFn: () => api.get<OrderEvent[]>(`/orders/${orderId}/events`),
+    enabled: !!orderId,
+  });
+}
+
 export function useCreateOrder() {
   const queryClient = useQueryClient();
 
@@ -410,6 +413,7 @@ export function useUpdateOrderStatus(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders });
       queryClient.invalidateQueries({ queryKey: queryKeys.order(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orderEvents(id) });
       toast.success("Order status updated");
     },
     onError: (error) => {
@@ -425,7 +429,9 @@ export function useUpdateOrderStatus(id: string) {
 
 export function useInvoices(filters?: {
   status?: string;
-  search?: string;
+  partyId?: string;
+  orderId?: string;
+  isGst?: boolean;
   page?: number;
   limit?: number;
 }) {
@@ -434,7 +440,9 @@ export function useInvoices(filters?: {
     queryFn: () => {
       const params = new URLSearchParams();
       if (filters?.status) params.set("status", filters.status);
-      if (filters?.search) params.set("search", filters.search);
+      if (filters?.partyId) params.set("partyId", filters.partyId);
+      if (filters?.orderId) params.set("orderId", filters.orderId);
+      if (filters?.isGst !== undefined) params.set("isGst", String(filters.isGst));
       if (filters?.page) params.set("page", String(filters.page));
       if (filters?.limit) params.set("limit", String(filters.limit));
 
@@ -470,11 +478,33 @@ export function useCreateInvoice() {
   });
 }
 
+export function useCreateInvoiceFromOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateInvoiceFromOrderInput) =>
+      api.post<Invoice>("/invoices/from-order", data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoicesList({ orderId: variables.orderId }) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
+      queryClient.invalidateQueries({ queryKey: queryKeys.order(variables.orderId) });
+      toast.success("Invoice created successfully");
+    },
+    onError: (error) => {
+      const message = isApiError(error) ? error.message : "Failed to create invoice";
+      toast.error(message);
+    },
+  });
+}
+
 // =============================================================================
 // PAYMENT HOOKS
 // =============================================================================
 
 export function usePayments(filters?: {
+  orderId?: string;
+  invoiceId?: string;
   type?: string;
   method?: string;
   search?: string;
@@ -485,6 +515,8 @@ export function usePayments(filters?: {
     queryKey: queryKeys.paymentsList(filters),
     queryFn: () => {
       const params = new URLSearchParams();
+      if (filters?.orderId) params.set("orderId", filters.orderId);
+      if (filters?.invoiceId) params.set("invoiceId", filters.invoiceId);
       if (filters?.type) params.set("type", filters.type);
       if (filters?.method) params.set("method", filters.method);
       if (filters?.search) params.set("search", filters.search);
@@ -509,13 +541,28 @@ export function useRecordPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: RecordPaymentInput) =>
-      api.post<Payment>("/payments", data),
-    onSuccess: () => {
+    mutationFn: async (data: RecordPaymentInput) => {
+      const body = {
+        partyId: data.partyId,
+        orderId: data.orderId,
+        invoiceId: data.invoiceId,
+        method: data.method,
+        amount: data.amount,
+        reference: data.reference,
+        notes: data.notes,
+      };
+      const path = data.type === "OUT" ? "/payments/out" : "/payments/in";
+      return api.post<Payment>(path, body);
+    },
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments });
       queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
       queryClient.invalidateQueries({ queryKey: queryKeys.parties });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
+      if (variables.orderId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.orders });
+        queryClient.invalidateQueries({ queryKey: queryKeys.order(variables.orderId) });
+      }
       toast.success("Payment recorded successfully");
     },
     onError: (error) => {

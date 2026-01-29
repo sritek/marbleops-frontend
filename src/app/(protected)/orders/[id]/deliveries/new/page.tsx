@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Truck, Package, MapPin, User } from "lucide-react";
+import { ArrowLeft, Truck, Package, MapPin, User, CheckCircle, Printer } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePermission } from "@/lib/auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -20,8 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getMockOrderById } from "@/lib/mock/orders";
-import type { Order, OrderLineItem, TransportMode } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useOrderStore } from "@/lib/stores";
+import { downloadChallanPDF, printChallanPDF } from "@/lib/challan-pdf";
+import type { Order, OrderLineItem, TransportMode, DeliveryChallan } from "@/types";
 
 interface DeliveryItem {
   orderLineId: string;
@@ -43,9 +50,13 @@ export default function NewDeliveryChallanPage() {
   const t = useTranslations("orders");
   const tCommon = useTranslations("common");
 
+  // Get store functions
+  const { getOrderById, addDeliveryChallan } = useOrderStore();
+
   const [isLoading, setIsLoading] = React.useState(true);
   const [order, setOrder] = React.useState<Order | null>(null);
   const [deliveryItems, setDeliveryItems] = React.useState<DeliveryItem[]>([]);
+  const [createdChallan, setCreatedChallan] = React.useState<DeliveryChallan | null>(null);
 
   // Form state
   const [challanDate, setChallanDate] = React.useState(
@@ -61,10 +72,10 @@ export default function NewDeliveryChallanPage() {
   const [ewayBillDate, setEwayBillDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
 
-  // Load order data
+  // Load order data from store
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      const fetchedOrder = getMockOrderById(orderId);
+      const fetchedOrder = getOrderById(orderId);
       setOrder(fetchedOrder || null);
 
       if (fetchedOrder?.items) {
@@ -83,9 +94,9 @@ export default function NewDeliveryChallanPage() {
         );
       }
       setIsLoading(false);
-    }, 500);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [orderId]);
+  }, [orderId, getOrderById]);
 
   // Handle item selection
   const handleItemSelect = (index: number, selected: boolean) => {
@@ -125,28 +136,81 @@ export default function NewDeliveryChallanPage() {
   const handleSubmit = async () => {
     if (selectedItems.length === 0) return;
 
-    console.log("Creating delivery challan:", {
-      orderId,
-      challanDate,
-      transportMode,
-      vehicleNumber,
-      driverName,
-      driverPhone,
-      transporterName,
-      lrNumber,
-      ewayBillNumber,
-      ewayBillDate,
-      notes,
-      items: selectedItems.map((item) => ({
-        orderLineId: item.orderLineId,
-        productName: item.productName,
-        hsnCode: item.hsnCode,
-        quantityDispatched: item.quantityToDeliver,
-        unit: item.unit,
-      })),
-    });
+    try {
+      const challan = addDeliveryChallan({
+        orderId,
+        challanDate,
+        transportMode,
+        vehicleNumber: vehicleNumber || undefined,
+        driverName: driverName || undefined,
+        driverPhone: driverPhone || undefined,
+        transporterName: transporterName || undefined,
+        lrNumber: lrNumber || undefined,
+        ewayBillNumber: ewayBillNumber || undefined,
+        ewayBillDate: ewayBillDate || undefined,
+        notes: notes || undefined,
+        items: selectedItems.map((item) => ({
+          orderLineId: item.orderLineId,
+          productName: item.productName,
+          hsnCode: item.hsnCode,
+          quantityToDeliver: item.quantityToDeliver,
+          unit: item.unit,
+        })),
+      });
 
-    router.push(`/orders/${orderId}`);
+      // Show success screen with the created challan
+      setCreatedChallan(challan);
+    } catch (error) {
+      console.error("Failed to create delivery challan:", error);
+    }
+  };
+
+  // Handle download PDF
+  const handleDownloadPDF = () => {
+    if (createdChallan && order) {
+      downloadChallanPDF(createdChallan, order);
+    }
+  };
+
+  // Handle print PDF
+  const handlePrintPDF = () => {
+    if (createdChallan && order) {
+      printChallanPDF(createdChallan, order);
+    }
+  };
+
+  // Handle create another
+  const handleCreateAnother = () => {
+    setCreatedChallan(null);
+    // Reset form
+    setChallanDate(new Date().toISOString().split("T")[0]);
+    setTransportMode("OWN");
+    setVehicleNumber("");
+    setDriverName("");
+    setDriverPhone("");
+    setTransporterName("");
+    setLrNumber("");
+    setEwayBillNumber("");
+    setEwayBillDate("");
+    setNotes("");
+    // Reload order to get updated remaining quantities
+    const fetchedOrder = getOrderById(orderId);
+    setOrder(fetchedOrder || null);
+    if (fetchedOrder?.items) {
+      setDeliveryItems(
+        fetchedOrder.items.map((item: OrderLineItem) => ({
+          orderLineId: item.id,
+          productName: item.productSnapshot.name,
+          hsnCode: item.productSnapshot.hsnCode,
+          quantityOrdered: item.quantityOrdered,
+          quantityDelivered: item.quantityDelivered,
+          quantityRemaining: item.quantityRemaining,
+          quantityToDeliver: item.quantityRemaining,
+          unit: item.unit,
+          selected: item.quantityRemaining > 0,
+        }))
+      );
+    }
   };
 
   if (isLoading) {
@@ -176,25 +240,26 @@ export default function NewDeliveryChallanPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <>
+    <div className={`space-y-6 pb-24 lg:pb-6 transition-all duration-300 ${createdChallan ? "blur-sm pointer-events-none" : ""}`}>
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      <div className="flex items-center gap-3 md:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="-ml-2 sm:ml-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary">
             {t("deliveryChallan.title")}
           </h1>
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-muted truncate">
             {order.orderNumber} • {order.customerSnapshot.name}
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 order-1">
           {/* Delivery Date */}
           <Card>
             <CardHeader className="pb-3">
@@ -343,22 +408,27 @@ export default function NewDeliveryChallanPage() {
                     } ${item.quantityRemaining === 0 ? "opacity-50" : ""}`}
                   >
                     <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={item.selected}
-                        onCheckedChange={(checked) =>
-                          handleItemSelect(index, !!checked)
-                        }
-                        disabled={item.quantityRemaining === 0}
-                      />
+                      {/* Larger touch target for checkbox */}
+                      <div className="flex items-center justify-center w-8 h-8 -ml-1">
+                        <Checkbox
+                          checked={item.selected}
+                          onCheckedChange={(checked) =>
+                            handleItemSelect(index, !!checked)
+                          }
+                          disabled={item.quantityRemaining === 0}
+                          className="h-5 w-5"
+                        />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="font-medium">{item.productName}</p>
+                        {/* Stack on mobile */}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{item.productName}</p>
                             <p className="text-xs text-text-muted">
                               HSN: {item.hsnCode}
                             </p>
                           </div>
-                          <div className="text-right text-sm">
+                          <div className="text-left sm:text-right text-sm flex flex-wrap gap-x-3 sm:block">
                             <p>
                               <span className="text-text-muted">Ordered:</span>{" "}
                               {item.quantityOrdered} {item.unit}
@@ -375,23 +445,25 @@ export default function NewDeliveryChallanPage() {
                         </div>
 
                         {item.quantityRemaining > 0 && (
-                          <div className="mt-3 flex items-center gap-3">
+                          <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
                             <Label className="text-sm whitespace-nowrap">
                               {t("deliveryChallan.quantityToDeliver")}:
                             </Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={item.quantityRemaining}
-                              value={item.quantityToDeliver}
-                              onChange={(e) =>
-                                handleQuantityChange(index, Number(e.target.value))
-                              }
-                              className="w-24"
-                            />
-                            <span className="text-sm text-text-muted">
-                              {item.unit}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                max={item.quantityRemaining}
+                                value={item.quantityToDeliver}
+                                onChange={(e) =>
+                                  handleQuantityChange(index, Number(e.target.value))
+                                }
+                                className="w-24"
+                              />
+                              <span className="text-sm text-text-muted">
+                                {item.unit}
+                              </span>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -418,8 +490,8 @@ export default function NewDeliveryChallanPage() {
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Sidebar - Desktop only */}
+        <div className="lg:col-span-1 space-y-6 order-2 hidden lg:block">
           {/* Delivery Address */}
           <Card>
             <CardHeader className="pb-3">
@@ -454,7 +526,7 @@ export default function NewDeliveryChallanPage() {
           </Card>
 
           {/* Summary */}
-          <Card>
+          <Card className="sticky top-20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Delivery Summary</CardTitle>
             </CardHeader>
@@ -480,7 +552,7 @@ export default function NewDeliveryChallanPage() {
                   Create Delivery Challan
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   className="w-full"
                   onClick={() => router.back()}
                 >
@@ -490,7 +562,127 @@ export default function NewDeliveryChallanPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Mobile Delivery Address Card */}
+        <div className="order-2 lg:hidden">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                {t("detail.shippingAddress")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm space-y-1">
+                <p>{order.shippingAddress.line1}</p>
+                {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
+                <p>
+                  {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
+                  {order.shippingAddress.pincode}
+                </p>
+                {order.shippingAddress.contactPerson && (
+                  <div className="mt-3 pt-3 border-t border-border-subtle">
+                    <p className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-text-muted" />
+                      {order.shippingAddress.contactPerson}
+                    </p>
+                    {order.shippingAddress.contactPhone && (
+                      <p className="text-text-muted">
+                        {order.shippingAddress.contactPhone}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border-subtle p-4 lg:hidden z-50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-text-muted">Selected</p>
+            <p className="text-sm font-semibold">
+              {selectedItems.length} items • {totalQuantityToDeliver} units
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="secondary" size="sm" onClick={() => router.back()}>
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              size="sm"
+              disabled={selectedItems.length === 0}
+              onClick={handleSubmit}
+            >
+              <Truck className="h-4 w-4 mr-2" />
+              Create
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
+
+    {/* Success Overlay Dialog */}
+    <Dialog open={!!createdChallan} onOpenChange={() => router.push(`/orders/${orderId}`)}>
+      <DialogContent className="sm:max-w-md">
+        {createdChallan && order && (
+          <>
+            <DialogHeader className="text-center pb-2">
+              <div className="mx-auto mb-4 inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-100">
+                <CheckCircle className="h-8 w-8 text-success-600" />
+              </div>
+              <DialogTitle className="text-2xl font-semibold text-text-primary">
+                {t("deliveryChallan.challanCreated")}
+              </DialogTitle>
+              <p className="text-text-muted text-sm">
+                {createdChallan.challanNumber}
+              </p>
+            </DialogHeader>
+
+            {/* Challan Summary */}
+            <div className="p-4 bg-surface-secondary rounded-lg space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("deliveryChallan.challanDate")}</span>
+                <span className="font-medium">{formatDate(createdChallan.challanDate)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{t("order")}</span>
+                <span className="font-medium">{createdChallan.orderNumber}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">{tCommon("status")}</span>
+                <span className="font-medium text-warning-600">Dispatched</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">Items</span>
+                <span className="font-medium">{createdChallan.items.length} items</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">Total Quantity</span>
+                <span className="font-medium">
+                  {createdChallan.items.reduce((sum, item) => sum + item.quantityDispatched, 0)} units
+                </span>
+              </div>
+              {createdChallan.vehicleNumber && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-muted">{t("deliveryChallan.vehicleNumber")}</span>
+                  <span className="font-medium">{createdChallan.vehicleNumber}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Print Action */}
+            <Button className="w-full" onClick={handlePrintPDF}>
+              <Printer className="h-4 w-4 mr-2" />
+              {t("deliveryChallan.printChallan")}
+            </Button>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

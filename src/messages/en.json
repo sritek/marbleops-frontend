@@ -39,7 +39,11 @@
     "active": "Active",
     "inactive": "Inactive",
     "allStatus": "All Status",
+    "allStatuses": "All Statuses",
     "allTypes": "All Types",
+    "allCategories": "All Categories",
+    "category": "Category",
+    "number": "Number",
     "tryAdjustingFilters": "Try adjusting your filters",
     "noResults": "No results found",
     "getStarted": "Get started",
@@ -48,7 +52,8 @@
     "saveChanges": "Save Changes",
     "createdAt": "Created",
     "updatedAt": "Updated",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "change": "Change"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -56,6 +61,7 @@
     "orders": "Orders",
     "invoices": "Invoices",
     "payments": "Payments",
+    "expenses": "Expenses",
     "parties": "Parties",
     "reports": "Reports",
     "deadStock": "Dead Stock",
@@ -161,7 +167,7 @@
     "searchPlaceholder": "Search by name, lot number...",
     "allMaterials": "All Materials",
     "allColors": "All Colors",
-    "color": "Color",
+    "colorLabel": "Color",
     "applyFilters": "Apply Filters",
     "clearFilters": "Clear",
     "activeFilters": "Active filters",
@@ -193,6 +199,7 @@
   "orders": {
     "title": "Orders",
     "subtitle": "Manage customer orders and deliveries",
+    "order": "Order",
     "newOrder": "New Order",
     "createNewOrderDesc": "Create a new customer order with GST calculations",
     "orderNumber": "Order #",
@@ -219,6 +226,7 @@
     "cancelOrder": "Cancel Order",
     "holdOrder": "Put On Hold",
     "resumeOrder": "Resume Order",
+    "backToOrder": "Back to Order",
     "overdue": "Overdue",
     "dueBy": "Due",
     "delivery": "Delivery",
@@ -238,7 +246,9 @@
       "overdue": "Overdue",
       "pastDueDate": "past due date",
       "paymentDue": "Payment Due",
-      "outstanding": "outstanding"
+      "outstanding": "outstanding",
+      "delivered": "delivered",
+      "completed": "completed"
     },
 
     "status": {
@@ -261,6 +271,7 @@
       "cancelled": "Cancelled"
     },
 
+    "priorityLabel": "Priority",
     "priority": {
       "urgent": "Urgent",
       "normal": "Normal",
@@ -279,6 +290,8 @@
     "expectedDelivery": "Expected Delivery",
     "orderDate": "Order Date",
     "orderSummary": "Order Summary",
+    "totalAmount": "Total Amount",
+    "orderTotal": "Order Total",
     "searchCustomer": "Search customer by name, phone, GSTIN...",
     "addresses": "Addresses",
     "billingAddress": "Billing Address",
@@ -312,6 +325,8 @@
     "internalNotesPlaceholder": "Notes visible only to staff...",
     "customerNotes": "Customer Notes",
     "customerNotesPlaceholder": "Notes visible to customer on documents...",
+    "noCustomersFound": "No party available",
+    "noInventoryFound": "No inventory available",
     "overallDiscount": "Overall Discount",
     "subtotal": "Subtotal",
     "discount": "Discount",
@@ -355,7 +370,35 @@
       "orderConfirmed": "Order Confirmed",
       "paymentReceived": "Payment Received",
       "deliveryCreated": "Delivery Created",
+      "orderDelivered": "Order Delivered",
       "orderCancelled": "Order Cancelled"
+    },
+
+    "paymentRecord": {
+      "title": "Record Payment",
+      "amount": "Payment Amount",
+      "paymentMode": "Payment Mode",
+      "paymentDate": "Payment Date",
+      "referenceNumber": "Reference Number",
+      "bankName": "Bank Name",
+      "chequeNumber": "Cheque Number",
+      "chequeDate": "Cheque Date",
+      "allocationType": "Allocation Type",
+      "recordPayment": "Record Payment",
+      "paymentRecorded": "Payment Recorded Successfully",
+      "modes": {
+        "cash": "Cash",
+        "upi": "UPI",
+        "banktransfer": "Bank Transfer",
+        "cheque": "Cheque",
+        "card": "Card",
+        "credit": "Credit"
+      },
+      "allocation": {
+        "advance": "Advance Payment",
+        "againstOrder": "Against Order",
+        "againstInvoice": "Against Invoice"
+      }
     },
 
     "deliveryChallan": {
@@ -377,11 +420,26 @@
         "courier": "Courier",
         "customerPickup": "Customer Pickup",
         "thirdParty": "Third Party Transport"
-      }
+      },
+      "status": {
+        "dispatched": "Dispatched",
+        "in_transit": "In Transit",
+        "delivered": "Delivered",
+        "partial_return": "Partial Return",
+        "full_return": "Full Return"
+      },
+      "updateStatus": "Update Status",
+      "markInTransit": "Mark In Transit",
+      "markDelivered": "Mark Delivered",
+      "printChallan": "Print Challan",
+      "downloadPDF": "Download PDF",
+      "challanCreated": "Delivery Challan Created",
+      "createAnother": "Create Another Delivery"
     },
 
     "detail": {
-      "shippingAddress": "Shipping Address"
+      "shippingAddress": "Shipping Address",
+      "paymentProgress": "Payment Progress"
     }
   },
   "invoices": {
@@ -389,6 +447,7 @@
     "subtitle": "Manage billing and invoices",
     "newInvoice": "New Invoice",
     "createNewInvoice": "Create a new GST-compliant tax invoice",
+    "createInvoiceDesc": "Create a new GST-compliant tax invoice",
     "invoiceNumber": "Invoice #",
     "invoiceDate": "Invoice Date",
     "invoiceType": "Invoice Type",
@@ -416,6 +475,7 @@
     "billingState": "Billing State",
     "placeOfSupply": "Place of Supply",
     "lineItems": "Line Items",
+    "items": "Items",
     "addItem": "Add Item",
     "item": "Item",
     "qty": "Qty",
@@ -426,6 +486,7 @@
     "grandTotal": "Grand Total",
     "roundOff": "Round Off",
     "amountInWords": "Amount in Words",
+    "dueDate": "Due Date",
     "bankDetails": "Bank Details",
     "termsAndConditions": "Terms & Conditions",
     "notes": "Notes",
@@ -437,6 +498,7 @@
     "downloadExcel": "Download Excel",
     "print": "Print",
     "paymentHistory": "Payment History",
+    "paymentSummary": "Payment Summary",
     "totalPaid": "Total Paid",
     "status": {
       "draft": "Draft",
@@ -492,6 +554,97 @@
       "upi": "UPI",
       "cheque": "Cheque",
       "other": "Other"
+    }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Track and manage business expenses",
+    "newExpense": "New Expense",
+    "searchPlaceholder": "Search expenses...",
+    "noExpenses": "No expenses found",
+    "noExpensesDesc": "Record your first expense to get started",
+    "expenseNotFound": "Expense not found",
+    "expenseCreated": "Expense Created Successfully",
+    "viewAllExpenses": "View All Expenses",
+    "viewExpense": "View Expense",
+    "markPaidDescription": "Record payment details for this expense",
+    "summary": "Summary",
+    "category": {
+      "materialpurchase": "Material Purchase",
+      "freight": "Freight/Transport",
+      "labor": "Labor",
+      "rent": "Rent",
+      "utilities": "Utilities",
+      "equipment": "Equipment",
+      "vehicle": "Vehicle",
+      "packaging": "Packaging",
+      "marketing": "Marketing",
+      "office": "Office Supplies",
+      "professional": "Professional Fees",
+      "taxes": "Taxes & Licenses",
+      "insurance": "Insurance",
+      "other": "Other"
+    },
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "fields": {
+      "category": "Category",
+      "basicInfo": "Basic Information",
+      "amountDetails": "Amount Details",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter expense description...",
+      "amount": "Amount (excl. GST)",
+      "gstRate": "GST Rate (%)",
+      "gstAmount": "GST Amount",
+      "totalAmount": "Total Amount",
+      "vendor": "Vendor/Supplier",
+      "vendorName": "Vendor Name",
+      "vendorNamePlaceholder": "Enter vendor name",
+      "selectVendor": "Select Vendor",
+      "selectVendorPlaceholder": "Select or enter new",
+      "newVendor": "Enter New Vendor",
+      "billNumber": "Bill/Invoice Number",
+      "billNumberPlaceholder": "Optional",
+      "billDate": "Bill Date",
+      "paymentStatus": "Payment Status",
+      "paymentMethod": "Payment Method",
+      "paymentReference": "Reference Number",
+      "paymentReferencePlaceholder": "UTR, Transaction ID, etc.",
+      "paidDate": "Paid Date",
+      "paymentInfo": "Payment Information",
+      "amountDetails": "Amount Details",
+      "basicInfo": "Basic Information",
+      "expenseNumber": "Expense #",
+      "createdAt": "Created"
+    },
+    "recurring": {
+      "title": "Recurring Expense",
+      "isRecurring": "This is a recurring expense",
+      "frequency": "Frequency",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "endDate": "End Date (Optional)"
+    },
+    "attachments": {
+      "title": "Attachments",
+      "upload": "Upload Receipt/Bill",
+      "dragDrop": "Drag & drop or click to upload"
+    },
+    "actions": {
+      "markPaid": "Mark as Paid",
+      "duplicate": "Duplicate",
+      "cancel": "Cancel Expense"
+    },
+    "stats": {
+      "totalExpenses": "Total Expenses",
+      "thisMonth": "This Month",
+      "gstClaimable": "GST Input Credit",
+      "pendingPayment": "Pending Payment"
     }
   },
   "parties": {

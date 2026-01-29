@@ -17,6 +17,8 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   INVOICE_EDIT: "Create and edit invoices",
   PAYMENT_VIEW: "View payment history",
   PAYMENT_RECORD: "Record incoming and outgoing payments",
+  EXPENSE_VIEW: "View business expenses",
+  EXPENSE_EDIT: "Create and edit expenses",
   REPORTS_VIEW: "View business reports",
   SETTINGS_MANAGE: "Manage application settings",
 };
@@ -39,6 +41,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "INVOICE_EDIT",
     "PAYMENT_VIEW",
     "PAYMENT_RECORD",
+    "EXPENSE_VIEW",
+    "EXPENSE_EDIT",
     "REPORTS_VIEW",
     "SETTINGS_MANAGE",
   ],
@@ -54,6 +58,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "INVOICE_EDIT",
     "PAYMENT_VIEW",
     "PAYMENT_RECORD",
+    "EXPENSE_VIEW",
+    "EXPENSE_EDIT",
     "REPORTS_VIEW",
   ],
   ACCOUNTANT: [
@@ -64,9 +70,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "INVOICE_EDIT",
     "PAYMENT_VIEW",
     "PAYMENT_RECORD",
+    "EXPENSE_VIEW",
+    "EXPENSE_EDIT",
     "REPORTS_VIEW",
   ],
-  STAFF: ["INVENTORY_VIEW", "PARTY_VIEW", "ORDER_VIEW", "ORDER_EDIT"],
+  STAFF: ["INVENTORY_VIEW", "PARTY_VIEW", "ORDER_VIEW", "ORDER_EDIT", "EXPENSE_VIEW"],
 };
 
 /**
@@ -91,6 +99,7 @@ export const PermissionGroups = {
   canManageOrders: ["ORDER_EDIT"] as Permission[],
   canManageInvoices: ["INVOICE_EDIT"] as Permission[],
   canRecordPayments: ["PAYMENT_RECORD"] as Permission[],
+  canManageExpenses: ["EXPENSE_EDIT"] as Permission[],
   canManageParties: ["PARTY_EDIT"] as Permission[],
   canViewReports: ["REPORTS_VIEW"] as Permission[],
   canManageUsers: ["USER_MANAGE"] as Permission[],

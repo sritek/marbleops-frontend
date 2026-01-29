@@ -30,31 +30,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  mockOrders,
-  getMockOrderStats,
-} from "@/lib/mock/orders";
+import { useOrders } from "@/lib/api";
+import { Spinner } from "@/components/ui/spinner";
 import type { Order, OrderStatus } from "@/types";
 
 // Status badge variants
 const statusVariants: Record<OrderStatus, "default" | "warning" | "success" | "error"> = {
   DRAFT: "default",
   CONFIRMED: "warning",
-  PROCESSING: "warning",
-  PARTIALLY_DELIVERED: "warning",
   DELIVERED: "success",
-  CLOSED: "success",
   CANCELLED: "error",
-  ON_HOLD: "default",
 };
 
-// Status tab configuration
+// Status tab configuration - match backend OrderStatus enum
 const statusTabs: { value: string; labelKey: string; icon?: React.ElementType }[] = [
   { value: "all", labelKey: "allOrders" },
   { value: "DRAFT", labelKey: "status.draft", icon: FileText },
   { value: "CONFIRMED", labelKey: "status.confirmed", icon: CheckCircle },
-  { value: "PROCESSING", labelKey: "status.processing", icon: Package },
-  { value: "PARTIALLY_DELIVERED", labelKey: "status.partiallyDelivered", icon: Truck },
   { value: "DELIVERED", labelKey: "status.delivered", icon: CheckCircle },
   { value: "CANCELLED", labelKey: "status.cancelled", icon: AlertTriangle },
 ];
@@ -69,77 +61,65 @@ export default function OrdersPage() {
   // Filter states
   const [search, setSearch] = React.useState(searchParams.get("search") || "");
   const [statusTab, setStatusTab] = React.useState(searchParams.get("status") || "all");
-  const [priorityFilter, setPriorityFilter] = React.useState("all");
 
-  // Get stats
-  const stats = React.useMemo(() => getMockOrderStats(), []);
+  // Fetch orders from backend
+  const { data: orders = [], isLoading, error } = useOrders({
+    status: statusTab !== "all" ? statusTab : undefined,
+  });
 
-  // Filter orders
+  // Calculate stats from backend data
+  const stats = React.useMemo(() => {
+    const activeOrders = orders.filter((o) => o.status !== "CANCELLED");
+    return {
+      totalOrders: orders.length,
+      totalValue: activeOrders.reduce((sum, o) => sum + o.totalAmount, 0),
+      draftOrders: orders.filter((o) => o.status === "DRAFT").length,
+      confirmedOrders: orders.filter((o) => o.status === "CONFIRMED").length,
+      deliveredOrders: orders.filter((o) => o.status === "DELIVERED").length,
+      cancelledOrders: orders.filter((o) => o.status === "CANCELLED").length,
+      paymentPending: activeOrders.reduce((sum, o) => sum + o.totalAmount, 0), // Simplified - backend doesn't track payments yet
+      overdueDeliveries: 0, // Not tracked in backend yet
+    };
+  }, [orders]);
+
+  // Filter orders (client-side for search, status is handled by API)
   const filteredOrders = React.useMemo(() => {
-    let filtered = [...mockOrders];
+    let filtered = [...orders];
 
-    // Status filter
-    if (statusTab !== "all") {
-      filtered = filtered.filter((order) => order.status === statusTab);
-    }
-
-    // Priority filter
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter((order) => order.priority === priorityFilter);
-    }
-
-    // Search filter
+    // Search filter (client-side since backend doesn't support it yet)
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(
         (order) =>
           order.orderNumber.toLowerCase().includes(searchLower) ||
-          order.customerSnapshot.name.toLowerCase().includes(searchLower) ||
-          order.customerSnapshot.phone?.includes(search)
+          (order.partyName && order.partyName.toLowerCase().includes(searchLower)) ||
+          (order.party?.name && order.party.name.toLowerCase().includes(searchLower))
       );
     }
 
     // Sort by date descending
     return filtered.sort(
-      (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [statusTab, priorityFilter, search]);
+  }, [orders, search]);
 
   // Count by status for tabs
   const statusCounts = React.useMemo(() => {
-    const counts: Record<string, number> = { all: mockOrders.length };
-    mockOrders.forEach((order) => {
+    const counts: Record<string, number> = { all: orders.length };
+    orders.forEach((order) => {
       counts[order.status] = (counts[order.status] || 0) + 1;
     });
     return counts;
-  }, []);
+  }, [orders]);
 
   // Handle row click
   const handleRowClick = (order: Order) => {
     router.push(`/orders/${order.id}`);
   };
 
-  // Calculate delivery progress
-  const getDeliveryProgress = (order: Order) => {
-    if (order.totalQuantityOrdered === 0) return 0;
-    return Math.round((order.totalQuantityDelivered / order.totalQuantityOrdered) * 100);
-  };
-
-  // Calculate payment progress
-  const getPaymentProgress = (order: Order) => {
-    if (order.grandTotal === 0) return 100;
-    return Math.round((order.amountPaid / order.grandTotal) * 100);
-  };
-
-  // Check if order is overdue
-  const isOverdue = (order: Order) => {
-    if (!order.expectedDeliveryDate) return false;
-    return (
-      new Date(order.expectedDeliveryDate) < new Date() &&
-      order.deliveryStatus !== "COMPLETE" &&
-      order.status !== "CANCELLED" &&
-      order.status !== "CLOSED"
-    );
+  // Get customer name from order
+  const getCustomerName = (order: Order) => {
+    return order.partyName || order.party?.name || "Unknown Customer";
   };
 
   return (
@@ -171,16 +151,15 @@ export default function OrdersPage() {
         />
         <StatCard
           title={t("stats.toShip")}
-          value={(stats.confirmedOrders + stats.processingOrders).toString()}
+          value={stats.confirmedOrders.toString()}
           description={t("stats.readyForDelivery")}
           icon={Truck}
         />
         <StatCard
-          title={t("stats.overdue")}
-          value={stats.overdueDeliveries.toString()}
-          description={t("stats.pastDueDate")}
-          icon={AlertTriangle}
-          trend={stats.overdueDeliveries > 0 ? "down" : undefined}
+          title={t("stats.delivered")}
+          value={stats.deliveredOrders.toString()}
+          description={t("stats.completed")}
+          icon={CheckCircle}
         />
         <StatCard
           title={t("stats.paymentDue")}
@@ -190,33 +169,44 @@ export default function OrdersPage() {
         />
       </div>
 
-      {/* Status Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-border-subtle pb-2">
-        {statusTabs.map((tab) => {
-          const count = statusCounts[tab.value] || 0;
-          const isActive = statusTab === tab.value;
-          return (
-            <button
-              key={tab.value}
-              onClick={() => setStatusTab(tab.value)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-primary-100 text-primary-700"
-                  : "text-text-muted hover:bg-bg-app hover:text-text-primary"
-              }`}
-            >
-              {tab.icon && <tab.icon className="h-4 w-4" />}
-              <span>{t(tab.labelKey)}</span>
-              <span
-                className={`px-1.5 py-0.5 rounded-full text-xs ${
-                  isActive ? "bg-primary-200" : "bg-bg-app"
+      {/* Status Tabs - Scrollable on mobile */}
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-2 border-b border-border-subtle pb-2 min-w-max">
+          {statusTabs.map((tab) => {
+            const count = statusCounts[tab.value] || 0;
+            const isActive = statusTab === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  const newStatus = tab.value;
+                  const params = new URLSearchParams(searchParams.toString());
+                  if (newStatus === "all") {
+                    params.delete("status");
+                  } else {
+                    params.set("status", newStatus);
+                  }
+                  router.push(`/orders?${params.toString()}`);
+                }}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  isActive
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-text-muted hover:bg-bg-app hover:text-text-primary"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
+                {tab.icon && <tab.icon className="h-4 w-4" />}
+                <span>{t(tab.labelKey)}</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-xs ${
+                    isActive ? "bg-primary-200" : "bg-bg-app"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Filters */}
@@ -230,165 +220,181 @@ export default function OrdersPage() {
             className="pl-9"
           />
         </div>
-
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder={t("priority")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allPriorities")}</SelectItem>
-            <SelectItem value="URGENT">{t("priority.urgent")}</SelectItem>
-            <SelectItem value="NORMAL">{t("priority.normal")}</SelectItem>
-            <SelectItem value="LOW">{t("priority.low")}</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* Orders List */}
-      {filteredOrders.length === 0 ? (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <ShoppingCart className="h-12 w-12 text-text-muted mb-4" />
+            <AlertTriangle className="h-12 w-12 text-error mb-4" />
             <p className="text-lg font-medium text-text-primary mb-1">
-              {t("noOrders")}
+              {tCommon("error")}
             </p>
             <p className="text-sm text-text-muted mb-4">
-              {search || statusTab !== "all"
-                ? tCommon("tryAdjustingFilters")
-                : t("noOrdersDesc")}
+              {error instanceof Error ? error.message : "Failed to load orders"}
             </p>
-            {canEdit && (
-              <Button asChild>
-                <Link href="/orders/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("newOrder")}
-                </Link>
-              </Button>
-            )}
+            <Button onClick={() => window.location.reload()}>
+              {tCommon("retry")}
+            </Button>
           </CardContent>
         </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-bg-app">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">
-                      {t("orderNumber")}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">
-                      {t("customer")}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-text-muted hidden md:table-cell">
-                      {t("items")}
-                    </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-text-muted">
-                      {tCommon("amount")}
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-text-muted hidden lg:table-cell">
-                      {t("delivery")}
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-text-muted hidden lg:table-cell">
-                      {t("payment")}
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-text-muted">
-                      {tCommon("status")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => {
-                    const deliveryProgress = getDeliveryProgress(order);
-                    const paymentProgress = getPaymentProgress(order);
-                    const orderIsOverdue = isOverdue(order);
+      )}
 
-                    return (
-                      <tr
-                        key={order.id}
-                        onClick={() => handleRowClick(order)}
-                        className="border-b border-border-subtle last:border-0 hover:bg-bg-app cursor-pointer transition-colors"
-                      >
-                        <td className="py-3 px-4">
-                          <div>
-                            <span className="font-medium text-text-primary">
-                              {order.orderNumber}
-                            </span>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs text-text-muted">
-                                {formatDate(order.orderDate)}
+      {/* Orders List */}
+      {!isLoading && !error && (
+        <>
+          {filteredOrders.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <ShoppingCart className="h-12 w-12 text-text-muted mb-4" />
+                <p className="text-lg font-medium text-text-primary mb-1">
+                  {t("noOrders")}
+                </p>
+                <p className="text-sm text-text-muted mb-4">
+                  {search
+                    ? tCommon("tryAdjustingFilters")
+                    : t("noOrdersDesc")}
+                </p>
+                {canEdit && (
+                  <Button asChild>
+                    <Link href="/orders/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("newOrder")}
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {filteredOrders.map((order) => {
+                  return (
+                    <Card
+                      key={order.id}
+                      onClick={() => handleRowClick(order)}
+                      className="cursor-pointer hover:bg-bg-app transition-colors active:scale-[0.99]"
+                    >
+                      <CardContent className="p-4">
+                        {/* Header Row */}
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-text-primary">
+                                {order.orderNumber}
                               </span>
-                              {order.priority === "URGENT" && (
-                                <Badge variant="error" className="text-xs py-0">
-                                  {t("priority.urgent")}
-                                </Badge>
-                              )}
-                              {orderIsOverdue && (
-                                <Badge variant="error" className="text-xs py-0">
-                                  {t("overdue")}
-                                </Badge>
-                              )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-medium text-text-primary truncate max-w-[180px]">
-                              {order.customerSnapshot.name}
+                            <p className="text-sm text-text-muted truncate mt-0.5">
+                              {getCustomerName(order)}
                             </p>
-                            {order.expectedDeliveryDate && (
-                              <p className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
-                                <Clock className="h-3 w-3" />
-                                {t("dueBy")} {formatDate(order.expectedDeliveryDate)}
-                              </p>
-                            )}
                           </div>
-                        </td>
-                        <td className="py-3 px-4 hidden md:table-cell">
-                          <span className="text-sm text-text-muted">
-                            {order.items?.length || 0} {t("itemsCount")}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="font-medium">
-                            {formatCurrency(order.grandTotal)}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 hidden lg:table-cell text-center">
-                          <Badge 
-                            variant={
-                              deliveryProgress === 100 ? "success" 
-                              : deliveryProgress > 0 ? "warning" 
-                              : "error"
-                            }
-                          >
-                            {t(deliveryProgress === 100 ? "deliveryBadge.shipped" : deliveryProgress > 0 ? "deliveryBadge.partial" : "deliveryBadge.pending")}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 hidden lg:table-cell text-center">
-                          <Badge 
-                            variant={
-                              paymentProgress === 100 ? "success" 
-                              : paymentProgress > 0 ? "warning" 
-                              : "error"
-                            }
-                          >
-                            {t(paymentProgress === 100 ? "paymentBadge.paid" : paymentProgress > 0 ? "paymentBadge.partial" : "paymentBadge.unpaid")}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 text-center">
                           <Badge variant={statusVariants[order.status]}>
                             {t(`status.${order.status.toLowerCase()}`)}
                           </Badge>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                        </div>
+
+                        {/* Details Row */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-3 text-text-muted">
+                            <span>{formatDate(order.createdAt)}</span>
+                            <span>•</span>
+                            <span>{order.items?.length || 0} {t("itemsCount")}</span>
+                          </div>
+                          <span className="font-semibold text-text-primary">
+                            {formatCurrency(order.totalAmount)}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View */}
+              <Card className="hidden md:block">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border-subtle bg-bg-app">
+                          <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">
+                            {t("orderNumber")}
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">
+                            {t("customer")}
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-text-muted">
+                            {t("items")}
+                          </th>
+                          <th className="text-right py-3 px-4 text-sm font-medium text-text-muted">
+                            {tCommon("amount")}
+                          </th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-text-muted">
+                            {tCommon("status")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredOrders.map((order) => {
+                          return (
+                            <tr
+                              key={order.id}
+                              onClick={() => handleRowClick(order)}
+                              className="border-b border-border-subtle last:border-0 hover:bg-bg-app cursor-pointer transition-colors"
+                            >
+                              <td className="py-3 px-4">
+                                <div>
+                                  <span className="font-medium text-text-primary">
+                                    {order.orderNumber}
+                                  </span>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-xs text-text-muted">
+                                      {formatDate(order.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div>
+                                  <p className="font-medium text-text-primary truncate max-w-[180px]">
+                                    {getCustomerName(order)}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="text-sm text-text-muted">
+                                  {order.items?.length || 0} {t("itemsCount")}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                <span className="font-medium">
+                                  {formatCurrency(order.totalAmount)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <Badge variant={statusVariants[order.status]}>
+                                  {t(`status.${order.status.toLowerCase()}`)}
+                                </Badge>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </>
       )}
     </div>
   );

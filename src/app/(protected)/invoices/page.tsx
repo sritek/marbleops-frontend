@@ -19,10 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockInvoices } from "@/lib/mock/invoices";
-import type { Invoice, InvoiceStatus } from "@/types";
+import { useInvoices } from "@/lib/api";
+import { Spinner } from "@/components/ui/spinner";
+import type { Invoice } from "@/types";
+import { getInvoiceDisplayStatus } from "@/types";
 
-const statusVariants: Record<InvoiceStatus, "default" | "warning" | "success" | "error"> = {
+const statusVariants: Record<string, "default" | "warning" | "success" | "error"> = {
   DRAFT: "default",
   ISSUED: "warning",
   PARTIAL: "warning",
@@ -47,28 +49,23 @@ export default function InvoicesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Use mock data with filtering
-  const invoices = React.useMemo(() => {
-    let filtered = [...mockInvoices];
+  // Fetch invoices from backend
+  const { data: invoices = [], isLoading, error } = useInvoices({
+    status: status !== "all" ? status : undefined,
+  });
 
-    // Filter by status
-    if (status !== "all") {
-      filtered = filtered.filter((inv) => inv.status === status);
-    }
+  // Client-side search filtering (backend doesn't support search yet)
+  const filteredInvoices = React.useMemo(() => {
+    if (!debouncedSearch) return invoices;
 
-    // Filter by search
-    if (debouncedSearch) {
-      const searchLower = debouncedSearch.toLowerCase();
-      filtered = filtered.filter(
-        (inv) =>
-          inv.invoiceNumber.toLowerCase().includes(searchLower) ||
-          inv.buyer.name.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Sort by date descending
-    return filtered.sort((a, b) => b.invoiceDate.localeCompare(a.invoiceDate));
-  }, [status, debouncedSearch]);
+    const searchLower = debouncedSearch.toLowerCase();
+    return invoices.filter(
+      (inv) =>
+        inv.invoiceNumber.toLowerCase().includes(searchLower) ||
+        inv.partyName?.toLowerCase().includes(searchLower) ||
+        inv.party?.name.toLowerCase().includes(searchLower)
+    );
+  }, [invoices, debouncedSearch]);
 
   // Status options with translations
   const statusOptions = [
@@ -90,14 +87,14 @@ export default function InvoicesPage() {
       ),
     },
     {
-      accessorKey: "buyer",
+      accessorKey: "party",
       header: tCommon("name"),
-      cell: ({ row }) => row.original.buyer?.name || row.original.party?.name || "—",
+      cell: ({ row }) => row.original.partyName || row.original.party?.name || "—",
     },
     {
-      accessorKey: "invoiceDate",
+      accessorKey: "createdAt",
       header: ({ column }) => <SortableHeader column={column}>{tCommon("date")}</SortableHeader>,
-      cell: ({ row }) => formatDate(row.original.invoiceDate || row.original.createdAt),
+      cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
       accessorKey: "totalAmount",
@@ -116,11 +113,14 @@ export default function InvoicesPage() {
     {
       accessorKey: "status",
       header: tCommon("status"),
-      cell: ({ row }) => (
-        <Badge variant={statusVariants[row.original.status]}>
-          {t(`status.${row.original.status.toLowerCase()}`)}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const displayStatus = getInvoiceDisplayStatus(row.original);
+        return (
+          <Badge variant={statusVariants[displayStatus] || "default"}>
+            {t(`status.${displayStatus.toLowerCase()}`)}
+          </Badge>
+        );
+      },
     },
     {
       id: "actions",
@@ -176,19 +176,32 @@ export default function InvoicesPage() {
         </Select>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={invoices}
-        onRowClick={(row) => router.push(`/invoices/${row.id}`)}
-        emptyState={{
-          title: t("noInvoices"),
-          description: search || status !== "all"
-            ? tCommon("tryAdjustingFilters")
-            : t("noInvoicesDesc"),
-          actionLabel: canEdit ? t("newInvoice") : undefined,
-          onAction: canEdit ? () => router.push("/invoices/new") : undefined,
-        }}
-      />
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spinner />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="text-text-muted mb-4">Failed to load invoices</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredInvoices}
+          onRowClick={(row) => router.push(`/invoices/${row.id}`)}
+          emptyState={{
+            title: t("noInvoices"),
+            description: search || status !== "all"
+              ? tCommon("tryAdjustingFilters")
+              : t("noInvoicesDesc"),
+            actionLabel: canEdit ? t("newInvoice") : undefined,
+            onAction: canEdit ? () => router.push("/invoices/new") : undefined,
+          }}
+        />
+      )}
     </div>
   );
 }

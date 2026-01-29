@@ -12,3 +12,4 @@ export type { StockMetric, StockParty } from "./stock-detail-card";
 export { LowStockTable } from "./low-stock-table";
 export type { LowStockItem } from "./low-stock-table";
 export { PhotoUpload, clearPhotoStorage } from "./photo-upload";
+export { InventoryForm } from "./inventory-form";

@@ -35,10 +35,13 @@ import type {
   ShippingAddress,
   CustomerType,
   UnitOfMeasure,
+  OrderLineItem,
 } from "@/types";
 import { INDIAN_STATES } from "@/types";
+import { useCreateOrder, useParties, useInventoryList } from "@/lib/api";
+import type { CreateOrderInput } from "@/types";
 
-// Mock inventory items for selection
+// Mock inventory items for selection (will be replaced with API)
 const mockInventoryItems = [
   {
     id: "inv-001",
@@ -108,80 +111,6 @@ const mockInventoryItems = [
   },
 ];
 
-// Mock customers
-const mockCustomers = [
-  {
-    id: "party-001",
-    name: "Sharma Constructions Pvt. Ltd.",
-    gstin: "24AADCS1234F1ZP",
-    phone: "+91 79 2345 6789",
-    email: "procurement@sharma.com",
-    customerType: "B2B_REGISTERED" as CustomerType,
-    billingAddress: {
-      line1: "45, Industrial Estate",
-      city: "Ahmedabad",
-      state: "Gujarat",
-      stateCode: "24",
-      pincode: "380015",
-    },
-    shippingAddress: {
-      line1: "Site Office, Sarkhej Road",
-      city: "Ahmedabad",
-      state: "Gujarat",
-      stateCode: "24",
-      pincode: "380055",
-      contactPerson: "Ramesh Sharma",
-      contactPhone: "+91 98765 11111",
-    },
-  },
-  {
-    id: "party-002",
-    name: "Mumbai Interiors & Designs",
-    gstin: "27AABFM5678G1ZK",
-    phone: "+91 22 2456 7890",
-    email: "orders@mumbaiinteriors.in",
-    customerType: "B2B_REGISTERED" as CustomerType,
-    billingAddress: {
-      line1: "Office 301, Trade Center",
-      city: "Mumbai",
-      state: "Maharashtra",
-      stateCode: "27",
-      pincode: "400001",
-    },
-    shippingAddress: {
-      line1: "Warehouse, Bhiwandi",
-      city: "Thane",
-      state: "Maharashtra",
-      stateCode: "27",
-      pincode: "421302",
-      contactPerson: "Suresh Patil",
-      contactPhone: "+91 98765 22222",
-    },
-  },
-  {
-    id: "party-005",
-    name: "Rajesh Kumar",
-    phone: "+91 98765 43210",
-    customerType: "B2C" as CustomerType,
-    billingAddress: {
-      line1: "B-102, Shanti Apartments",
-      city: "Rajkot",
-      state: "Gujarat",
-      stateCode: "24",
-      pincode: "360005",
-    },
-    shippingAddress: {
-      line1: "B-102, Shanti Apartments",
-      city: "Rajkot",
-      state: "Gujarat",
-      stateCode: "24",
-      pincode: "360005",
-      contactPerson: "Rajesh Kumar",
-      contactPhone: "+91 98765 43210",
-    },
-  },
-];
-
 interface OrderItem {
   id: string;
   inventoryId: string;
@@ -225,6 +154,15 @@ export default function NewOrderPage() {
   const t = useTranslations("orders");
   const tCommon = useTranslations("common");
 
+  // API hooks
+  const createOrder = useCreateOrder();
+  const { data: parties = [], isLoading: isLoadingParties } = useParties({
+    type: "CUSTOMER", // Filter for customers only
+  });
+  const { data: inventoryItems = [], isLoading: isLoadingInventory } = useInventoryList({
+    status: "AVAILABLE", // Only show available inventory
+  });
+
   // Form state
   const [orderType, setOrderType] = React.useState<OrderType>("STANDARD");
   const [priority, setPriority] = React.useState<Priority>("NORMAL");
@@ -233,9 +171,10 @@ export default function NewOrderPage() {
   // Customer state
   const [selectedCustomerId, setSelectedCustomerId] = React.useState("");
   const [customerSearch, setCustomerSearch] = React.useState("");
+  const [isCustomerSearchFocused, setIsCustomerSearchFocused] = React.useState(false);
   const [customerType, setCustomerType] = React.useState<CustomerType>("B2B_REGISTERED");
 
-  // Address state
+  // Address state (kept for UI but not sent to backend)
   const [billingAddress, setBillingAddress] = React.useState<GSTAddress>(emptyAddress);
   const [shippingAddress, setShippingAddress] = React.useState<ShippingAddress>(emptyShippingAddress);
   const [placeOfSupply, setPlaceOfSupply] = React.useState("24"); // Default Gujarat
@@ -244,56 +183,55 @@ export default function NewOrderPage() {
   const [items, setItems] = React.useState<OrderItem[]>([]);
   const itemIdCounter = React.useRef(0);
   const [inventorySearch, setInventorySearch] = React.useState("");
+  const [isInventorySearchFocused, setIsInventorySearchFocused] = React.useState(false);
 
   // Notes state
   const [internalNotes, setInternalNotes] = React.useState("");
   const [customerNotes, setCustomerNotes] = React.useState("");
   const [discountPercent, setDiscountPercent] = React.useState(0);
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
   // Seller state code (Gujarat)
   const sellerStateCode = "24";
 
-  // Filter customers
+  // Filter customers from API
   const filteredCustomers = React.useMemo(() => {
-    if (!customerSearch) return mockCustomers;
+    if (!customerSearch) return parties;
     const search = customerSearch.toLowerCase();
-    return mockCustomers.filter(
+    return parties.filter(
       (c) =>
         c.name.toLowerCase().includes(search) ||
-        c.phone.includes(customerSearch) ||
-        c.gstin?.toLowerCase().includes(search)
+        (c.phone && c.phone.includes(customerSearch)) ||
+        (c.gstNumber && c.gstNumber.toLowerCase().includes(search))
     );
-  }, [customerSearch]);
+  }, [parties, customerSearch]);
 
-  // Filter inventory
+  // Filter inventory from API
   const filteredInventory = React.useMemo(() => {
-    if (!inventorySearch) return [];
+    if (!isInventorySearchFocused) return [];
+    if (!inventorySearch) return inventoryItems.slice(0, 20);
     const search = inventorySearch.toLowerCase();
-    return mockInventoryItems
+    return inventoryItems
       .filter(
         (item) =>
-          item.name.toLowerCase().includes(search) ||
-          item.sku.toLowerCase().includes(search) ||
-          item.category.toLowerCase().includes(search)
+          (item.stoneName || item.name || "").toLowerCase().includes(search) ||
+          (item.lotNumber && item.lotNumber.toLowerCase().includes(search)) ||
+          (item.materialType && item.materialType.toLowerCase().includes(search))
       )
-      .slice(0, 8);
-  }, [inventorySearch]);
+      .slice(0, 20);
+  }, [inventoryItems, inventorySearch, isInventorySearchFocused]);
 
   // Is inter-state supply
   const isInterState = placeOfSupply !== sellerStateCode;
 
   // Handle customer selection
   const handleSelectCustomer = (customerId: string) => {
-    const customer = mockCustomers.find((c) => c.id === customerId);
+    const customer = parties.find((c) => c.id === customerId);
     if (customer) {
       setSelectedCustomerId(customerId);
-      setCustomerType(customer.customerType);
-      setBillingAddress(customer.billingAddress);
-      setShippingAddress(customer.shippingAddress as ShippingAddress);
-      setPlaceOfSupply(customer.billingAddress.stateCode);
+      // Note: Backend Party doesn't have customerType or addresses
+      // These are UI-only fields for now
       setCustomerSearch("");
+      setIsCustomerSearchFocused(false);
     }
   };
 
@@ -307,7 +245,7 @@ export default function NewOrderPage() {
   };
 
   // Add item to order
-  const handleAddItem = (inventoryItem: typeof mockInventoryItems[0]) => {
+  const handleAddItem = (inventoryItem: typeof inventoryItems[0]) => {
     const existingIndex = items.findIndex((i) => i.inventoryId === inventoryItem.id);
     if (existingIndex >= 0) {
       // Update existing item quantity
@@ -318,20 +256,22 @@ export default function NewOrderPage() {
     } else {
       // Add new item
       itemIdCounter.current += 1;
+      const itemName = inventoryItem.stoneName || inventoryItem.name || "Unnamed Item";
+      const unitPrice = inventoryItem.sellPrice || inventoryItem.unitPrice || 0;
       const newItem: OrderItem = {
         id: `item-${itemIdCounter.current}`,
         inventoryId: inventoryItem.id,
-        name: inventoryItem.name,
-        hsnCode: inventoryItem.hsnCode,
-        category: inventoryItem.category,
-        length: 0,
-        width: 0,
-        quantity: 1,
+        name: itemName,
+        hsnCode: "", // Not in backend schema yet
+        category: inventoryItem.materialType || "",
+        length: inventoryItem.length ? Number(inventoryItem.length) : 0,
+        width: inventoryItem.height ? Number(inventoryItem.height) : 0,
+        quantity: inventoryItem.quantity || 1,
         unit: "SQF",
-        areaSqft: 0,
-        unitPrice: inventoryItem.unitPrice,
+        areaSqft: inventoryItem.availableSqft ? Number(inventoryItem.availableSqft) : 0,
+        unitPrice: unitPrice,
         discountPercent: 0,
-        taxableValue: inventoryItem.unitPrice,
+        taxableValue: unitPrice,
         gstRate: 18,
         cgstAmount: 0,
         sgstAmount: 0,
@@ -343,6 +283,7 @@ export default function NewOrderPage() {
       setItems([...items, newItem]);
     }
     setInventorySearch("");
+    setIsInventorySearchFocused(false);
   };
 
   // Recalculate item totals
@@ -439,45 +380,34 @@ export default function NewOrderPage() {
     };
   }, [items, discountPercent, isInterState]);
 
-  // Submit order
+  // Submit order - simplified to match backend schema
   const handleSubmit = async () => {
     if (!selectedCustomerId || items.length === 0) return;
 
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    console.log("Creating order:", {
-      orderType,
-      priority,
-      expectedDeliveryDate,
-      customerId: selectedCustomerId,
-      customerType,
-      billingAddress,
-      shippingAddress,
-      placeOfSupply,
-      items: items.map((item) => ({
-        inventoryId: item.inventoryId,
-        quantity: item.areaSqft || item.quantity,
-        unitPrice: item.unitPrice,
-        dimensions: item.length > 0 ? { length: item.length, width: item.width, unit: "FT" } : undefined,
-        gstRate: item.gstRate,
-        discountPercent: item.discountPercent,
-        lineNotes: item.lineNotes,
-      })),
-      discountPercent,
-      internalNotes,
-      customerNotes,
-      totals,
-    });
+    try {
+      // Map form data to backend CreateOrderInput schema
+      const backendPayload: CreateOrderInput = {
+        partyId: selectedCustomerId,
+        items: items.map((item) => ({
+          inventoryId: item.inventoryId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        })),
+        notes: internalNotes || customerNotes || undefined,
+      };
 
-    // Simulate delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    router.push("/orders");
+      // Submit to backend
+      const newOrder = await createOrder.mutateAsync(backendPayload);
+      
+      // Redirect to order detail page
+      router.push(`/orders/${newOrder.id}`);
+    } catch (error) {
+      // Error is handled by mutation (toast notification)
+      console.error("Failed to create order:", error);
+    }
   };
 
-  const selectedCustomer = mockCustomers.find((c) => c.id === selectedCustomerId);
+  const selectedCustomer = parties.find((c) => c.id === selectedCustomerId);
 
   if (!canEdit) {
     return (
@@ -491,21 +421,21 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-0 pb-24 lg:pb-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      <div className="flex items-center gap-3 md:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="-ml-2 sm:ml-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary">{t("newOrder")}</h1>
-          <p className="text-sm text-text-muted">{t("createNewOrderDesc")}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary">{t("newOrder")}</h1>
+          <p className="text-sm text-text-muted hidden sm:block">{t("createNewOrderDesc")}</p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 order-1">
           {/* Order Type & Priority */}
           <Card>
             <CardHeader className="pb-3">
@@ -528,7 +458,7 @@ export default function NewOrderPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("priority")}</Label>
+                  <Label>{t("priorityLabel")}</Label>
                   <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -566,15 +496,19 @@ export default function NewOrderPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium text-text-primary">{selectedCustomer.name}</p>
-                      <p className="text-sm text-text-muted">{selectedCustomer.phone}</p>
-                      {selectedCustomer.gstin && (
+                      {selectedCustomer.phone && (
+                        <p className="text-sm text-text-muted">{selectedCustomer.phone}</p>
+                      )}
+                      {selectedCustomer.gstNumber && (
                         <p className="text-xs text-text-muted mt-1">
-                          GSTIN: {selectedCustomer.gstin}
+                          GSTIN: {selectedCustomer.gstNumber}
                         </p>
                       )}
-                      <Badge variant="default" className="mt-2">
-                        {selectedCustomer.customerType === "B2B_REGISTERED" ? "B2B" : "B2C"}
-                      </Badge>
+                      {selectedCustomer.type && (
+                        <Badge variant="default" className="mt-2">
+                          {selectedCustomer.type}
+                        </Badge>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -592,27 +526,43 @@ export default function NewOrderPage() {
                     placeholder={t("searchCustomer")}
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
+                    onFocus={() => setIsCustomerSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setIsCustomerSearchFocused(false), 200)}
                     className="pl-9"
                   />
-                  {customerSearch && filteredCustomers.length > 0 && (
+                  {isCustomerSearchFocused && (
                     <div className="absolute z-10 w-full mt-1 bg-bg-surface border border-border-subtle rounded-lg shadow-lg max-h-60 overflow-auto">
-                      {filteredCustomers.map((customer) => (
-                        <button
-                          key={customer.id}
-                          className="w-full text-left px-4 py-3 hover:bg-bg-app border-b border-border-subtle last:border-0"
-                          onClick={() => handleSelectCustomer(customer.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">{customer.name}</p>
-                              <p className="text-xs text-text-muted">{customer.phone}</p>
+                      {isLoadingParties ? (
+                        <div className="p-3 text-center text-text-muted">
+                          {tCommon("loading")}...
+                        </div>
+                      ) : filteredCustomers.length === 0 ? (
+                        <div className="p-3 text-center text-text-muted">
+                          {t("noCustomersFound")}
+                        </div>
+                      ) : (
+                        filteredCustomers.map((customer) => (
+                          <button
+                            key={customer.id}
+                            className="w-full text-left px-4 py-3 hover:bg-bg-app border-b border-border-subtle last:border-0"
+                            onClick={() => handleSelectCustomer(customer.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">{customer.name}</p>
+                                {customer.phone && (
+                                  <p className="text-xs text-text-muted">{customer.phone}</p>
+                                )}
+                              </div>
+                              {customer.type && (
+                                <Badge variant="default">
+                                  {customer.type}
+                                </Badge>
+                              )}
                             </div>
-                            <Badge variant="default">
-                              {customer.customerType === "B2B_REGISTERED" ? "B2B" : "B2C"}
-                            </Badge>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
@@ -815,29 +765,47 @@ export default function NewOrderPage() {
                   placeholder={t("searchInventory")}
                   value={inventorySearch}
                   onChange={(e) => setInventorySearch(e.target.value)}
+                  onFocus={() => setIsInventorySearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsInventorySearchFocused(false), 200)}
                   className="pl-9"
                 />
-                {inventorySearch && filteredInventory.length > 0 && (
+                {isInventorySearchFocused && (
                   <div className="absolute z-10 w-full mt-1 bg-bg-surface border border-border-subtle rounded-lg shadow-lg max-h-60 overflow-auto">
-                    {filteredInventory.map((item) => (
-                      <button
-                        key={item.id}
-                        className="w-full text-left px-4 py-3 hover:bg-bg-app border-b border-border-subtle last:border-0"
-                        onClick={() => handleAddItem(item)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-xs text-text-muted">
-                              {item.category} • {item.color} • HSN: {item.hsnCode}
-                            </p>
-                          </div>
-                          <span className="text-sm font-medium">
-                            {formatCurrency(item.unitPrice)}/sqft
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                    {isLoadingInventory ? (
+                      <div className="p-3 text-center text-text-muted">
+                        {tCommon("loading")}...
+                      </div>
+                    ) : filteredInventory.length === 0 ? (
+                      <div className="p-3 text-center text-text-muted">
+                        {t("noInventoryFound")}
+                      </div>
+                    ) : (
+                      filteredInventory.map((item) => {
+                        const itemName = item.stoneName || item.name || "Unnamed Item";
+                        const unitPrice = item.sellPrice || item.unitPrice || 0;
+                        return (
+                          <button
+                            key={item.id}
+                            className="w-full text-left px-4 py-3 hover:bg-bg-app border-b border-border-subtle last:border-0"
+                            onClick={() => handleAddItem(item)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">{itemName}</p>
+                                <p className="text-xs text-text-muted">
+                                  {item.materialType || ""} {item.form ? `• ${item.form}` : ""}
+                                  {item.lotNumber ? ` • Lot: ${item.lotNumber}` : ""}
+                                </p>
+                              </div>
+                              <span className="text-sm font-medium">
+                                {formatCurrency(unitPrice)}
+                                {item.availableSqft ? `/sqft` : ""}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 )}
               </div>
@@ -868,7 +836,7 @@ export default function NewOrderPage() {
                       </div>
 
                       {/* Dimensions & Quantity */}
-                      <div className="grid gap-3 sm:grid-cols-5">
+                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-5">
                         <div className="space-y-1">
                           <Label className="text-xs">{t("lengthFt")}</Label>
                           <Input
@@ -1031,8 +999,8 @@ export default function NewOrderPage() {
           </Card>
         </div>
 
-        {/* Sidebar - Order Summary */}
-        <div className="lg:col-span-1">
+        {/* Sidebar - Order Summary (Desktop) */}
+        <div className="lg:col-span-1 order-2 hidden lg:block">
           <Card className="sticky top-20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{t("orderSummary")}</CardTitle>
@@ -1124,9 +1092,9 @@ export default function NewOrderPage() {
               <div className="space-y-2 pt-4">
                 <Button
                   className="w-full"
-                  disabled={!selectedCustomerId || items.length === 0}
+                  disabled={!selectedCustomerId || items.length === 0 || createOrder.isPending}
                   onClick={handleSubmit}
-                  isLoading={isSubmitting}
+                  isLoading={createOrder.isPending}
                 >
                   {t("createOrder")}
                 </Button>
@@ -1136,6 +1104,31 @@ export default function NewOrderPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border-subtle p-4 lg:hidden z-50">
+        <div className="flex items-center justify-between gap-4 max-w-5xl mx-auto">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-text-muted">{t("grandTotal")}</p>
+            <p className="text-lg font-semibold text-primary-600 truncate">
+              {formatCurrency(totals.grandTotal)}
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="secondary" size="sm" onClick={() => router.back()}>
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              size="sm"
+              disabled={!selectedCustomerId || items.length === 0 || createOrder.isPending}
+              onClick={handleSubmit}
+              isLoading={createOrder.isPending}
+            >
+              {t("createOrder")}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

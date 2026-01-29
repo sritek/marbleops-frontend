@@ -80,7 +80,7 @@ export default function PaymentsPage() {
     {
       accessorKey: "party",
       header: t("party"),
-      cell: ({ row }) => row.original.party?.name || "—",
+      cell: ({ row }) => row.original.partyName ?? row.original.party?.name ?? "—",
     },
     {
       accessorKey: "createdAt",
